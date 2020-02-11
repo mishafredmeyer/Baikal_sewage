@@ -193,7 +193,7 @@ periphyton <- periphyton_orig %>%
   spread(key = TAXON, value = MEAN) %>%
   rename(Site = site) %>%
   separate(col = Site, into = c("Location", "Number"), sep = -1) %>%
-  unite(col = "Site", c("Location", "Number"), sep = "-") %>%
+  unite(col = "Site", Location, Number, sep = "-") %>%
   gather(key = Taxon, value = Count, desmidales:ulothrix) %>% 
   group_by(Site) %>%
   mutate(Total_count = sum(Count),
@@ -300,11 +300,11 @@ total_lipid <- total_lipid_orig %>%
                         yes = "Pallasea", no = Genus),
          Genus = ifelse(test = Genus == " Spl" & Species == "zone",
                         yes = "Splash", no = Genus),
-         Genus = ifelse(test = grepl("Drapa", Genus),
+         Genus = ifelse(test = grepl(pattern = "Drapa", x = Genus),
                         yes = "Drapa", no = Genus),
-         Genus = ifelse(test = grepl("Hyalella", Genus),
+         Genus = ifelse(test = grepl(pattern = "Hyalella", x = Genus),
                         yes = "Hyalella", no = Genus),
-         Genus = ifelse(test = grepl("Snails", Genus),
+         Genus = ifelse(test = grepl(pattern = "Snails", x = Genus),
                         yes = "Snails", no = Genus),
          Species = ifelse(test = Genus == "Eulimnogammarus" & Species == "ver",
                           yes = "verrucosus", no = Species),
@@ -323,6 +323,7 @@ total_lipid <- total_lipid_orig %>%
          Species = ifelse(test = Genus == "Spl" & Species == "zone",
                           yes = "Zone", no = Species)) %>%
   rename(total_lipid_mg_per_g = total.lipid.mg.g)
+
 head(total_lipid)
 
 write.csv(x = total_lipid, file = "../cleaned_data/total_lipid_20190320.csv",
@@ -336,13 +337,13 @@ microplastics_orig <- read.csv(file = "../original_data/microplastics_mfm_201710
 
 microplastics <- microplastics_orig %>%
   select(-comments) %>%
-  mutate(VOLUME_FILTERED = (volume * volume_rep)/1000, 
+  mutate(VOLUME_FILTERED = (volume * volume_rep) / 1000, 
          TOTAL_MP = fragments + fibers + beads,
-         DENSITY = TOTAL_MP/VOLUME_FILTERED,
-         FRAG_DENSITY = fragments/VOLUME_FILTERED,
-         FIBER_DENSITY = fibers/VOLUME_FILTERED,
-         BEAD_DENSITY = beads/VOLUME_FILTERED) %>%
-  unite(col = Site, location, site, sep = "-") %>%
+         DENSITY = TOTAL_MP / VOLUME_FILTERED,
+         FRAG_DENSITY = fragments / VOLUME_FILTERED,
+         FIBER_DENSITY = fibers / VOLUME_FILTERED,
+         BEAD_DENSITY = beads / VOLUME_FILTERED) %>%
+  unite(col = "Site", location, site, sep = "-") %>%
   select(Site, rep, TOTAL_MP, VOLUME_FILTERED, DENSITY, FRAG_DENSITY, 
          FIBER_DENSITY, BEAD_DENSITY) %>%
   filter(rep != "C") %>%
