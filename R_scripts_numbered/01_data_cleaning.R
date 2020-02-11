@@ -1,11 +1,15 @@
+# 1. Load packages --------------------------------------------------------
+
 library(dplyr)
 library(reshape2)
 library(lubridate)
 library(stringr)
 
-# Clean PPCP data --------
 
-ppcp_orig <- read.csv("../original_data/PPCP_Baikal_orig_20180524.csv", header = TRUE)
+# 2. Load and clean PPCP data ---------------------------------------------
+
+ppcp_orig <- read.csv(file = "../original_data/PPCP_Baikal_orig_20180524.csv",
+                      header = TRUE)
 
 ppcp <- ppcp_orig %>%
   select(Sample_ID, Caffeine, Acetaminophen, X1.7.Dimethylxanthine, Cotinine) %>%
@@ -27,29 +31,39 @@ ppcp <- ppcp_orig %>%
            Sample_ID == 'OS-2'|
            Sample_ID == 'OS-3') %>%
   group_by(Sample_ID) %>%
-  mutate(PPCP.SUM = Caffeine+Acetaminophen+X1.7.Dimethylxanthine+Cotinine) %>%
-  rename(Paraxanthine = X1.7.Dimethylxanthine, 
-         Site = Sample_ID)
+  mutate(PPCP.SUM = Caffeine + Acetaminophen + X1.7.Dimethylxanthine + Cotinine) %>%
+  rename(Paraxanthine = X1.7.Dimethylxanthine, Site = Sample_ID)
+
 head(ppcp)
-write.csv(ppcp, "../cleaned_data/ppcp_20190320.csv", row.names = FALSE)
 
-# Nutrient cleaning -----------------------------------------
+# Export new version of the data
+write.csv(x = ppcp, file = "../cleaned_data/ppcp_20190320.csv",
+          row.names = FALSE)
 
-nutrients_orig <- read.csv("../original_data/baikal_nearshore_nutrient_data_20151009.csv", header = TRUE)
+
+# 2. Load and clean nutrient data -----------------------------------------
+
+nutrients_orig <- read.csv(file = "../original_data/baikal_nearshore_nutrient_data_20151009.csv",
+                           header = TRUE)
 
 nutrients <- nutrients_orig %>%
   group_by(sample) %>%
-  summarize(mean_NH4_mg_dm3 = mean(NH4_mg_dm3), 
+  summarize(mean_NH4_mg_dm3 = mean(NH4_mg_dm3),
             mean_NO3_mg_dm3 = mean(NO3_mg_dm3),
             mean_TP_mg_dm3 = mean(TP_mg_dm3),
             mean_TPO43_mg_dm3 = mean(TPO43_mg_dm3)) %>%
   rename(Site = sample)
+
 head(nutrients)
-write.csv(nutrients, "../cleaned_data/nutrients_20190320.csv", row.names = FALSE)
 
-# Clean Chlorophyll a data ------------------------------------------------
+write.csv(x = nutrients, file = "../cleaned_data/nutrients_20190320.csv",
+          row.names = FALSE)
 
-chla_orig <- read.csv("../original_data/chlorophyll_20170117.csv", header = TRUE)
+
+# 3. Load and clean chlorophyll a data ------------------------------------
+
+chla_orig <- read.csv(file = "../original_data/chlorophyll_20170117.csv",
+                      header = TRUE)
 
 chlorophylla <- chla_orig %>%
   select(Station, chl_conc) %>%
@@ -75,21 +89,29 @@ chlorophylla <- chla_orig %>%
   rename(Site = Station)
 
 head(chlorophylla)
-write.csv(chlorophylla, "../cleaned_data/chlorophylla_20190320.csv", row.names = FALSE)
 
-# Metadata cleaning for Lat & Long ----------------------------------------
-metadata_orig <- read.csv("../original_data/baikal_nearshore_metadata_201508.csv", header = TRUE)
+write.csv(x = chlorophylla, file = "../cleaned_data/chlorophylla_20190320.csv",
+          row.names = FALSE)
+
+
+# 4. Load and clean lat/long metadata -------------------------------------
+
+metadata_orig <- read.csv(file = "../original_data/baikal_nearshore_metadata_201508.csv",
+                          header = TRUE)
 
 metadata <- metadata_orig %>%
   select(loc_site, lat, long, depth, dist_to_shore, air_temp, surface_temp, mid_temp, bottom_temp) %>%
   rename(Site = loc_site)
 
 head(metadata)
-write.csv(metadata, "../cleaned_data/metadata_20190320.csv", row.names = FALSE)
+write.csv(x = metadata, file = "../cleaned_data/metadata_20190320.csv",
+          row.names = FALSE)
 
-# Macroinbertebrate cleaning ---------------------------------------------------------
 
-inverts_orig <- read.csv("../original_data/macroinvert_community_QAQC_mfm_20171108.csv", header = TRUE)
+# 5. Load and clean macroinbertebrate data --------------------------------
+
+inverts_orig <- read.csv(file = "../original_data/macroinvert_community_QAQC_mfm_20171108.csv",
+                         header = TRUE)
 
 inverts <- inverts_orig %>%
   select(-X) %>%
@@ -128,12 +150,14 @@ inverts <- inverts_orig %>%
   separate(Location, c("Location", "Number"), sep = -1) %>%
   unite("Site", c("Location", "Number"), sep = "-")
 head(inverts)
-write.csv(inverts, "../cleaned_data/invertebrates_20190320.csv", row.names = FALSE)
+write.csv(x = inverts, file = "../cleaned_data/invertebrates_20190320.csv",
+          row.names = FALSE)
 
 
-# Periphyton cleaning -----------------------------------------------------
+# 6. Load and clean periphyton data ---------------------------------------
 
-periphyton_orig <- read.csv("../original_data/periphyton_20180917.csv", header = TRUE)
+periphyton_orig <- read.csv(file = "../original_data/periphyton_20180917.csv",
+                            header = TRUE)
 
 periphyton <- periphyton_orig %>%
   select(-date, -rep, -contains("filament"), -Lyngbya) %>%
@@ -162,12 +186,14 @@ periphyton <- periphyton_orig %>%
   as.data.frame()
 head(periphyton)
 
-write.csv(periphyton, "../cleaned_data/periphyton_20190320.csv", row.names = FALSE)
+write.csv(x = periphyton, file = "../cleaned_data/periphyton_20190320.csv",
+          row.names = FALSE)
 
 
-# Stable Isotope Cleaning -------------------------------------------------
+# 7. Load and clean stable isotope data -----------------------------------
 
-stable_isotopes_orig <- read.csv("../original_data/sia_results_mfm_20170509.csv", header = TRUE)
+stable_isotopes_orig <- read.csv(file = "../original_data/sia_results_mfm_20170509.csv",
+                                 header = TRUE)
 
 stable_isotopes <- stable_isotopes_orig %>%
   separate(Identifier, c("Site", "Genus", "Species"), sep = " ") %>%
@@ -181,12 +207,14 @@ stable_isotopes <- stable_isotopes_orig %>%
          Species = ifelse(Species == "Sp.", "Splash", Species))
 head(stable_isotopes)
 
-write.csv(stable_isotopes, "../cleaned_data/stable_isotopes_20190320.csv", row.names = FALSE)
+write.csv(x = stable_isotopes, file = "../cleaned_data/stable_isotopes_20190320.csv",
+          row.names = FALSE)
 
 
-# Fatty Acid cleaning -----------------------------------------------------------
+# 8. Load and clean fatty acid data ---------------------------------------
 
-fatty_acid_orig <- read.csv("../original_data/BaikalFAs_wt_20180322.csv", header = TRUE)
+fatty_acid_orig <- read.csv(file = "../original_data/BaikalFAs_wt_20180322.csv",
+                            header = TRUE)
 
 fatty_acid <- fatty_acid_orig %>%
   select(-GC_ID, -sample.) %>%
@@ -203,12 +231,14 @@ fatty_acid <- fatty_acid_orig %>%
   rename(Site = location)
 head(fatty_acid)
 
-write.csv(fatty_acid, "../cleaned_data/fatty_acid_20190320.csv", row.names = FALSE)
+write.csv(x = fatty_acid, file = "../cleaned_data/fatty_acid_20190320.csv",
+          row.names = FALSE)
 
 
-# Total Lipid Cleaning -------------------------------------------------------------
+# 9. Load and clean total lipid data --------------------------------------
 
-total_lipid_orig <- read.csv("../original_data/Baikal.total.lipid.mfm.20180322.csv", header = TRUE)
+total_lipid_orig <- read.csv(file = "../original_data/Baikal.total.lipid.mfm.20180322.csv",
+                             header = TRUE)
 
 total_lipid <- total_lipid_orig %>%
   select(-sample.num) %>%
@@ -235,12 +265,14 @@ total_lipid <- total_lipid_orig %>%
   rename(total_lipid_mg_per_g = total.lipid.mg.g)
 head(total_lipid)
 
-write.csv(total_lipid, "../cleaned_data/total_lipid_20190320.csv", row.names = FALSE)
+write.csv(x = total_lipid, file = "../cleaned_data/total_lipid_20190320.csv",
+          row.names = FALSE)
 
 
-# Microplastics Cleaning -----------------------------------------------------------
+# 10. Load and clean microplastics data -----------------------------------
 
-microplastics_orig <- read.csv("../original_data/microplastics_mfm_20171010.csv", header = TRUE)
+microplastics_orig <- read.csv(file = "../original_data/microplastics_mfm_20171010.csv",
+                               header = TRUE)
 
 microplastics <- microplastics_orig %>%
   select(-comments) %>%
@@ -263,11 +295,14 @@ microplastics <- microplastics_orig %>%
             mean_bead_density = mean(BEAD_DENSITY))
 head(microplastics)
 
-write.csv(microplastics, "../cleaned_data/microplastics_20190320.csv", row.names = FALSE)
+write.csv(x = microplastics, file = "../cleaned_data/microplastics_20190320.csv",
+          row.names = FALSE)
 
-# Calculated Distance Metrics Cleaning ------------------------------------
 
-distance_orig <- read.csv("../original_data/baikal_site_distances_mfm_20180517.csv", header = TRUE)
+# 11. Load and clean calculated distance metrics --------------------------
+
+distance_orig <- read.csv(file = "../original_data/baikal_site_distances_mfm_20180517.csv",
+                          header = TRUE)
 
 distance <- distance_orig %>%
   select(-SOUTH_UP, -NORTH_UP, -X, -X.1, -X.2) %>%
@@ -275,4 +310,5 @@ distance <- distance_orig %>%
 
 head(distance)
 
-write.csv(distance, "../cleaned_data/distance_20190320.csv", row.names = FALSE)
+write.csv(x = distance, file = "../cleaned_data/distance_20190320.csv",
+          row.names = FALSE)

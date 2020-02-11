@@ -1,3 +1,5 @@
+# 1. Load packages --------------------------------------------------------
+
 library(dplyr)
 library(tidyr)
 library(ggplot2)
@@ -7,7 +9,11 @@ library(vegan)
 library(factoextra)
 library(cluster)
 
-# 1. Load the data --------------------------------------------------------
+# Pull in function for plotting correlations
+source("panel_cor_function.R")
+
+
+# 2. Load the data --------------------------------------------------------
 
 invertebrates <- read.csv("../cleaned_data/invertebrates_20190320.csv", header = TRUE)
 periphyton <- read.csv("../cleaned_data/periphyton_20190320.csv", header = TRUE)
@@ -22,7 +28,7 @@ ppcp <- read.csv("../cleaned_data/ppcp_20190320.csv", header = TRUE)
 ppcp_meta_dist <- full_join(ppcp, metadata_dist) %>%
   filter(!(Site %in% c("OS-1", "OS-2", "OS-3")))
 
-# 2. Periphyton Analysis ---------------------------------------------------
+# 3. Periphyton analysis ---------------------------------------------------
 
 low <- c("BGO-1", "BGO-2", "KD-1", "KD-2")
 mod <- c("BGO-3", "BK-2", "BK-3", "MS-1")
@@ -130,31 +136,13 @@ adonis(periphyton_meta_dist_wide[, 2:5]
 
 
 
-# 3. Invertebrate Analysis ---------------------------------------------------
+# 4. Invertebrate analysis ---------------------------------------------------
 
 invertebrate_meta_dist <- full_join(invertebrates, ppcp_meta_dist) %>%
   mutate(POPULATION_INTENSITY = (SOUTH_SHORE_DIST*(POP_SOUTH_DEV/SOUTH_SHORE_AREA))/SOUTH_DEV_DIST)
 
 amphipods <- c("Eulimnogammarus", "Poekilogammarus", "Pallasea", "Hyallela", "Cryptoropus", "Brandtia")
 molluscs <- c("Acroloxidae", "Baicaliidae",  "Benedictidate", "Planorbidae", "Valvatidae")
-
-panel.cor <- function(x, y, digits = 2, cex.cor, ...)
-{
-  usr <- par("usr"); on.exit(par(usr))
-  par(usr = c(0, 1, 0, 1))
-  # correlation coefficient
-  r <- cor(x, y)
-  txt <- format(c(r, 0.123456789), digits = digits)[1]
-  txt <- paste("r= ", txt, sep = "")
-  text(0.5, 0.6, txt)
-  
-  # p-value calculation
-  p <- cor.test(x, y)$p.value
-  txt2 <- format(c(p, 0.123456789), digits = digits)[1]
-  txt2 <- paste("p= ", txt2, sep = "")
-  if(p<0.01) txt2 <- paste("p= ", "<0.01", sep = "")
-  text(0.5, 0.4, txt2)
-}
 
 invertebrates_long <- invertebrate_meta_dist %>%
   select(Site:Valvatidae) %>%

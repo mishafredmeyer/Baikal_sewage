@@ -1,3 +1,5 @@
+# 1. Load packages --------------------------------------------------------
+
 library(dplyr)
 library(tidyr)
 library(ggplot2)
@@ -5,7 +7,8 @@ library(viridis)
 library(viridisLite)
 library(ggpubr)
 
-# 1. Load data ------------------------------------------------------------
+
+# 2. Load data ------------------------------------------------------------
 
 ppcp <- read.csv("../cleaned_data/ppcp_20190320.csv", header = TRUE)
 nutrients <- read.csv("../cleaned_data/nutrients_20190320.csv", header = TRUE)
@@ -19,7 +22,7 @@ distance <- read.csv("../cleaned_data/distance_20190320.csv", header = TRUE)
 metadata_dist <- full_join(metadata, distance)
 
 
-# 2. PPCP analysis --------------------------------------------------------
+# 3. PPCP analysis --------------------------------------------------------
 
 ppcp_meta_dist <- full_join(ppcp, metadata_dist) %>%
   mutate(POPULATION_INTENSITY = (SOUTH_SHORE_DIST*(POP_SOUTH_DEV/SOUTH_SHORE_AREA))/SOUTH_DEV_DIST,
@@ -51,7 +54,7 @@ ggsave("ppcp_PI_plot.png", ppcp_PI_plot, device = "png",
        path = "../figures", width = 18, height = 12, units = "in")
 
 
-# Nutrient Analysis -----------------------------------------------------
+# 4. Nutrient Analysis ----------------------------------------------------
 
 ##First combine the data 
 nutrients_meta_dist <- full_join(nutrients, metadata_dist) %>%
@@ -127,7 +130,7 @@ ggsave("ammonium_PI_plot.png", ammonium_PI_plot, device = "png",
        path = "../figures", width = 18, height = 12, units = "in")
 
 
-# Stable Isotopes Analysis ------------------------------------------------
+# 5. Stable isotopes analysis ---------------------------------------------
 
 stable_isotopes_meta_dist <- full_join(stable_isotopes, metadata_dist) %>%
   mutate(POPULATION_INTENSITY = (SOUTH_SHORE_DIST*(POP_SOUTH_DEV/SOUTH_SHORE_AREA))/SOUTH_DEV_DIST)
@@ -181,7 +184,7 @@ ggsave("c13_PI_plot.png", c13_PI_plot, device = "png",
        path = "../figures", width = 18, height = 12, units = "in")
 
 
-# Chlorophyll a analysis --------------------------------------------------
+# 6. Chlorophyll a analysis -----------------------------------------------
 
 chlorophylla_meta_dist <- full_join(chlorophylla, metadata_dist) %>%
   mutate(POPULATION_INTENSITY = (SOUTH_SHORE_DIST*(POP_SOUTH_DEV/SOUTH_SHORE_AREA))/SOUTH_DEV_DIST)
@@ -209,7 +212,7 @@ ggsave("chlorophylla_PI_plot.png", chlorophylla_PI_plot, device = "png",
        path = "../figures", width = 18, height = 12, units = "in")
 
 
-# Microplastics Analysis --------------------------------------------------
+# 7. Microplastics analysis -----------------------------------------------
 
 microplastics_meta_dist <- full_join(microplastics, metadata_dist) %>%
   mutate(POPULATION_INTENSITY = (SOUTH_SHORE_DIST*(POP_SOUTH_DEV/SOUTH_SHORE_AREA))/SOUTH_DEV_DIST)
@@ -263,7 +266,7 @@ ggsave("microplastics_density_PI_plot.png", microplastics_density_PI_plot, devic
        path = "../figures", width = 18, height = 12, units = "in")
 
 
-# Combine Plots -----------------------------------------------------------
+# 8. Combine plots --------------------------------------------------------
 
 ggarrange(ppcp_PI_plot, n15_PI_plot, phosphorus_PI_plot, chlorophylla_PI_plot,
                             nitrate_PI_plot, microplastics_total_PI_plot, ammonium_PI_plot,
