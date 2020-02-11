@@ -1,6 +1,6 @@
 # 1. Load packages --------------------------------------------------------
 
-library(dplyr)
+library(tidyverse)
 library(reshape2)
 library(lubridate)
 library(stringr)
@@ -100,10 +100,12 @@ metadata_orig <- read.csv(file = "../original_data/baikal_nearshore_metadata_201
                           header = TRUE)
 
 metadata <- metadata_orig %>%
-  select(loc_site, lat, long, depth, dist_to_shore, air_temp, surface_temp, mid_temp, bottom_temp) %>%
+  select(loc_site, lat, long, depth, dist_to_shore, air_temp, surface_temp,
+         mid_temp, bottom_temp) %>%
   rename(Site = loc_site)
 
 head(metadata)
+
 write.csv(x = metadata, file = "../cleaned_data/metadata_20190320.csv",
           row.names = FALSE)
 
@@ -115,41 +117,58 @@ inverts_orig <- read.csv(file = "../original_data/macroinvert_community_QAQC_mfm
 
 inverts <- inverts_orig %>%
   select(-X) %>%
-  gather(Site, Count, MS1.3:BK1.3) %>%
+  gather(key = Site, value = Count, MS1.3:BK1.3) %>%
   rename(Taxon = Invertebrate) %>%
-  mutate(Site = gsub(".", "_", Site, fixed = TRUE),
-         Taxon = gsub(" ", "_", Taxon),
-         Count = ifelse(is.na(Count), 0, Count)) %>%
-  separate(Site, c("Location", "Replicate", "Duplicate"), remove = FALSE) %>%
+  mutate(Site = gsub(pattern = ".", replacement = "_", x = Site, fixed = TRUE),
+         Taxon = gsub(pattern = " ", replacement = "_", x = Taxon),
+         Count = ifelse(test = is.na(Count), yes = 0, no = Count)) %>%
+  separate(col = Site, into = c("Location", "Replicate", "Duplicate"),
+           remove = FALSE) %>%
   filter(Taxon != "Propapaidae") %>%
   group_by(Location, Replicate, Duplicate, Taxon) %>%
   summarize(sum_Count = sum(Count)) %>%
   ungroup() %>%
   group_by(Location, Taxon) %>%
   summarize(mean_Count = mean(sum_Count)) %>%
-  separate(Taxon, c("Genus", "Species", "Subspecies")) %>%
-  mutate(Genus = ifelse(Genus == "E", "Eulimnogammarus", Genus),
-         Genus = ifelse(Genus == "Eulimno", "Eulimnogammarus", Genus),
-         Genus = ifelse(Genus == "flatworms_", "Flatworms", Genus),
-         Genus = ifelse(Genus == "caddisflies", "Caddisflies", Genus),
-         Genus = ifelse(Genus == "pallasea", "Pallasea", Genus),
-         Genus = ifelse(Genus == "hyallela", "Hyallela", Genus),
-         Genus = ifelse(Genus == "poekilo", "Poekilogammarus", Genus),
-         Genus = ifelse(Genus == "Poekilo", "Poekilogammarus", Genus),
-         Genus = ifelse(Genus == "valvatidae", "Valvatidae", Genus), 
-         Species = ifelse(Species == "spp", NA, Species)) %>%
-  unite(Taxon, Genus, Species, Subspecies) %>%
-  mutate(Taxon = gsub("_NA_NA", "", Taxon),
-         Taxon = gsub("_NA", "", Taxon),
-         Taxon = ifelse(Taxon == "flatworms_", "Flatworms", Taxon), 
-         Taxon = ifelse(Taxon == "Hyallela_cziarnianski_", "Hyallela_cziarnianski", Taxon),
-         Taxon = ifelse(Taxon == "Pallasea_cancellus_", "Pallasea_cancellus", Taxon),
-         Taxon = ifelse(Taxon == "choronomids_", "Choronomids", Taxon)) %>%
-  spread(Taxon, mean_Count) %>%
+  separate(col = Taxon, into = c("Genus", "Species", "Subspecies")) %>%
+  mutate(Genus = ifelse(test = Genus == "E",
+                        yes = "Eulimnogammarus", no = Genus),
+         Genus = ifelse(test = Genus == "Eulimno",
+                        yes = "Eulimnogammarus", no = Genus),
+         Genus = ifelse(test = Genus == "flatworms_",
+                        yes = "Flatworms", no = Genus),
+         Genus = ifelse(test = Genus == "caddisflies",
+                        yes = "Caddisflies", no = Genus),
+         Genus = ifelse(test = Genus == "pallasea",
+                        yes = "Pallasea", no = Genus),
+         Genus = ifelse(test = Genus == "hyallela",
+                        yes = "Hyallela", no = Genus),
+         Genus = ifelse(test = Genus == "poekilo",
+                        yes = "Poekilogammarus", no = Genus),
+         Genus = ifelse(test = Genus == "Poekilo",
+                        yes = "Poekilogammarus", no = Genus),
+         Genus = ifelse(test = Genus == "valvatidae",
+                        yes = "Valvatidae", no = Genus), 
+         Species = ifelse(test = Species == "spp",
+                          yes = NA, no = Species)) %>%
+  unite(col = "Taxon", Genus, Species, Subspecies) %>%
+  mutate(Taxon = gsub(pattern = "_NA_NA", replacement = "", x = Taxon),
+         Taxon = gsub(pattern = "_NA", replacement = "", x = Taxon),
+         Taxon = ifelse(test = Taxon == "flatworms_",
+                        yes = "Flatworms", no = Taxon), 
+         Taxon = ifelse(test = Taxon == "Hyallela_cziarnianski_",
+                        yes = "Hyallela_cziarnianski", no = Taxon),
+         Taxon = ifelse(test = Taxon == "Pallasea_cancellus_",
+                        yes = "Pallasea_cancellus", no = Taxon),
+         Taxon = ifelse(test = Taxon == "choronomids_",
+                        yes = "Choronomids", no = Taxon)) %>%
+  spread(key = Taxon, value = mean_Count) %>%
   select(-Total) %>%
-  separate(Location, c("Location", "Number"), sep = -1) %>%
-  unite("Site", c("Location", "Number"), sep = "-")
+  separate(col = Location, into = c("Location", "Number"), sep = -1) %>%
+  unite(col = "Site", Location, Number, sep = "-")
+
 head(inverts)
+
 write.csv(x = inverts, file = "../cleaned_data/invertebrates_20190320.csv",
           row.names = FALSE)
 
@@ -162,28 +181,32 @@ periphyton_orig <- read.csv(file = "../original_data/periphyton_20180917.csv",
 periphyton <- periphyton_orig %>%
   select(-date, -rep, -contains("filament"), -Lyngbya) %>%
   filter(!is.na(diatom)) %>%
-  gather(TAXON, COUNT, diatom:desmidales) %>%
-  mutate(TAXON = ifelse(TAXON == "tetraporales", "tetrasporales", TAXON)) %>%
+  gather(key = TAXON, value = COUNT, diatom:desmidales) %>%
+  mutate(TAXON = ifelse(test = TAXON == "tetraporales",
+                        yes = "tetrasporales", no = TAXON)) %>%
   group_by(site, TAXON) %>%
   mutate(MEAN = mean(COUNT)) %>%
   ungroup() %>%
   group_by(site) %>%
   select(-counts, -comments, -COUNT) %>%
   unique() %>%
-  spread(TAXON, MEAN) %>%
+  spread(key = TAXON, value = MEAN) %>%
   rename(Site = site) %>%
-  separate(Site, c("Location", "Number"), sep = -1) %>%
-  unite("Site", c("Location", "Number"), sep = "-") %>%
-  gather(Taxon, Count, desmidales:ulothrix) %>% 
+  separate(col = Site, into = c("Location", "Number"), sep = -1) %>%
+  unite(col = "Site", c("Location", "Number"), sep = "-") %>%
+  gather(key = Taxon, value = Count, desmidales:ulothrix) %>% 
   group_by(Site) %>%
   mutate(Total_count = sum(Count),
          Prop = Count/Total_count) %>%
   select(-Total_count, -Count) %>%
-  spread(Taxon, Prop) %>%
+  spread(key = Taxon, value = Prop) %>%
   filter(!(Site %in% c("OS-1", "OS-2", "OS-3"))) %>% 
-  mutate(PI_group = ifelse(Site %in% high, "High", "NULL"),
-         PI_group = ifelse((Site %in% mod) | (Site %in% low), "Mod/Low", PI_group)) %>%
+  mutate(PI_group = ifelse(test = Site %in% high,
+                           yes = "High", no = "NULL"),
+         PI_group = ifelse(test = (Site %in% mod) | (Site %in% low),
+                           yes = "Mod/Low", no = PI_group)) %>%
   as.data.frame()
+
 head(periphyton)
 
 write.csv(x = periphyton, file = "../cleaned_data/periphyton_20190320.csv",
@@ -196,15 +219,24 @@ stable_isotopes_orig <- read.csv(file = "../original_data/sia_results_mfm_201705
                                  header = TRUE)
 
 stable_isotopes <- stable_isotopes_orig %>%
-  separate(Identifier, c("Site", "Genus", "Species"), sep = " ") %>%
-  mutate(Genus = ifelse(Genus == "E.", "Eulimnogammarus", Genus), 
-         Genus = ifelse(Genus == "P.", "Pallasea", Genus), 
-         Species = ifelse(Species == "can", "cancellus", Species), 
-         Species = ifelse(Species == "ver", "verrucosus", Species),
-         Species = ifelse(Species == "vitetus", "vitatus", Species),
-         Species = ifelse(Species == "veruossus", "verrucosus", Species),
-         Species = ifelse(Species == "cyan", "cyaneus", Species),
-         Species = ifelse(Species == "Sp.", "Splash", Species))
+  separate(col = Identifier, into = c("Site", "Genus", "Species"), sep = " ") %>%
+  mutate(Genus = ifelse(test = Genus == "E.",
+                        yes = "Eulimnogammarus", Genus), 
+         Genus = ifelse(test = Genus == "P.",
+                        yes = "Pallasea", no = Genus), 
+         Species = ifelse(test = Species == "can",
+                          yes = "cancellus", no = Species), 
+         Species = ifelse(test = Species == "ver",
+                          yes = "verrucosus", no = Species),
+         Species = ifelse(test = Species == "vitetus",
+                          yes = "vitatus", no = Species),
+         Species = ifelse(test = Species == "veruossus",
+                          yes = "verrucosus", no = Species),
+         Species = ifelse(test = Species == "cyan",
+                          yes = "cyaneus", no = Species),
+         Species = ifelse(test = Species == "Sp.",
+                          yes = "Splash", no = Species))
+
 head(stable_isotopes)
 
 write.csv(x = stable_isotopes, file = "../cleaned_data/stable_isotopes_20190320.csv",
@@ -218,17 +250,27 @@ fatty_acid_orig <- read.csv(file = "../original_data/BaikalFAs_wt_20180322.csv",
 
 fatty_acid <- fatty_acid_orig %>%
   select(-GC_ID, -sample.) %>%
-  separate(spp, c("Genus", "Species")) %>%
-  mutate(Genus = ifelse(Genus == "E" & Species == "ver", "Eulimnogammarus", Genus), 
-         Genus = ifelse(Genus == "E" & Species == "vitatus", "Eulimnogammarus", Genus),
-         Genus = ifelse(Genus == "E" & Species == "cyan", "Eulimnogammarus", Genus),
-         Genus = ifelse(Genus == "P" & Species == "can", "Pallasea", Genus),
-         Genus = ifelse(Genus == "Spl" & Species == "zone", "Splash", Genus),
-         Species = ifelse(Genus == "Eulimnogammarus" & Species == "ver", "verrucosus", Species),
-         Species = ifelse(Genus == "Eulimnogammarus" & Species == "cyan", "cyaneus", Species),
-         Species = ifelse(Genus == "Pallasea" & Species == "can", "cancellus", Species),
-         Species = ifelse(Genus == "Spl" & Species == "zone", "Zone", Species)) %>%
+  separate(col = spp, into = c("Genus", "Species")) %>%
+  mutate(Genus = ifelse(test = Genus == "E" & Species == "ver",
+                        yes = "Eulimnogammarus", no = Genus), 
+         Genus = ifelse(test = Genus == "E" & Species == "vitatus",
+                        yes = "Eulimnogammarus", no = Genus),
+         Genus = ifelse(test = Genus == "E" & Species == "cyan",
+                        yes = "Eulimnogammarus", no = Genus),
+         Genus = ifelse(test = Genus == "P" & Species == "can",
+                        yes = "Pallasea", no = Genus),
+         Genus = ifelse(test = Genus == "Spl" & Species == "zone",
+                        yes = "Splash", no = Genus),
+         Species = ifelse(test = Genus == "Eulimnogammarus" & Species == "ver",
+                          yes = "verrucosus", no = Species),
+         Species = ifelse(test = Genus == "Eulimnogammarus" & Species == "cyan",
+                          yes = "cyaneus", no = Species),
+         Species = ifelse(test = Genus == "Pallasea" & Species == "can",
+                          yes = "cancellus", no = Species),
+         Species = ifelse(test = Genus == "Spl" & Species == "zone",
+                          yes = "Zone", no = Species)) %>%
   rename(Site = location)
+
 head(fatty_acid)
 
 write.csv(x = fatty_acid, file = "../cleaned_data/fatty_acid_20190320.csv",
@@ -242,26 +284,44 @@ total_lipid_orig <- read.csv(file = "../original_data/Baikal.total.lipid.mfm.201
 
 total_lipid <- total_lipid_orig %>%
   select(-sample.num) %>%
-  separate(sample.id, c("Site", "SPP"), sep = "\\,") %>%
-  separate("SPP", c("Genus", "Species"), sep = "[.]") %>%
-  mutate(Genus = ifelse(Genus == " E" , "Eulimnogammarus", Genus), 
-         Genus = ifelse(Genus == "E" , "Eulimnogammarus", Genus), 
-         Genus = ifelse(Genus == "E" & Species == "ver", "Eulimnogammarus", Genus),
-         Genus = ifelse(Genus == "E" & Species == "vitatus", "Eulimnogammarus", Genus),
-         Genus = ifelse(Genus == "E" & Species == "cyan", "Eulimnogammarus", Genus),
-         Genus = ifelse(Genus == " P" & Species == "can", "Pallasea", Genus),
-         Genus = ifelse(Genus == " Spl" & Species == "zone", "Splash", Genus),
-         Genus = ifelse(grepl("Drapa", Genus), "Drapa", Genus),
-         Genus = ifelse(grepl("Hyalella", Genus), "Hyalella", Genus),
-         Genus = ifelse(grepl("Snails", Genus), "Snails", Genus),
-         Species = ifelse(Genus == "Eulimnogammarus" & Species == "ver", "verrucosus", Species),
-         Species = ifelse(Genus == "Eulimnogammarus" & Species == "ever", "verrucosus", Species),
-         Species = ifelse(Genus == "Eulimnogammarus" & grepl("verucossus", Species), "verrucosus", Species),
-         Species = ifelse(Genus == "Eulimnogammarus" & grepl("vitatus", Species), "vitatus", Species),
-         Species = ifelse(Genus == "Eulimnogammarus" & Species == "cyan", "cyaneus", Species),
-         Species = ifelse(Genus == "Eulimnogammarus" & grepl("cyan", Species), "cyaneus", Species),
-         Species = ifelse(Genus == "Pallasea" & Species == "can", "cancellus", Species),
-         Species = ifelse(Genus == "Spl" & Species == "zone", "Zone", Species)) %>%
+  separate(col = sample.id, into = c("Site", "SPP"), sep = "\\,") %>%
+  separate(col = SPP, into = c("Genus", "Species"), sep = "[.]") %>%
+  mutate(Genus = ifelse(test = Genus == " E" ,
+                        yes = "Eulimnogammarus", no = Genus), 
+         Genus = ifelse(test = Genus == "E" ,
+                        yes = "Eulimnogammarus", no = Genus), 
+         Genus = ifelse(test = Genus == "E" & Species == "ver",
+                        yes = "Eulimnogammarus", no = Genus),
+         Genus = ifelse(test = Genus == "E" & Species == "vitatus",
+                        yes = "Eulimnogammarus", no = Genus),
+         Genus = ifelse(test = Genus == "E" & Species == "cyan",
+                        yes = "Eulimnogammarus", no = Genus),
+         Genus = ifelse(test = Genus == " P" & Species == "can",
+                        yes = "Pallasea", no = Genus),
+         Genus = ifelse(test = Genus == " Spl" & Species == "zone",
+                        yes = "Splash", no = Genus),
+         Genus = ifelse(test = grepl("Drapa", Genus),
+                        yes = "Drapa", no = Genus),
+         Genus = ifelse(test = grepl("Hyalella", Genus),
+                        yes = "Hyalella", no = Genus),
+         Genus = ifelse(test = grepl("Snails", Genus),
+                        yes = "Snails", no = Genus),
+         Species = ifelse(test = Genus == "Eulimnogammarus" & Species == "ver",
+                          yes = "verrucosus", no = Species),
+         Species = ifelse(test = Genus == "Eulimnogammarus" & Species == "ever",
+                          yes = "verrucosus", no = Species),
+         Species = ifelse(test = Genus == "Eulimnogammarus" & grepl(pattern = "verucossus", x = Species),
+                          yes = "verrucosus", no = Species),
+         Species = ifelse(test = Genus == "Eulimnogammarus" & grepl(pattern = "vitatus", x = Species),
+                          yes = "vitatus", no = Species),
+         Species = ifelse(test = Genus == "Eulimnogammarus" & Species == "cyan",
+                          yes = "cyaneus", no = Species),
+         Species = ifelse(test = Genus == "Eulimnogammarus" & grepl(pattern = "cyan", x = Species),
+                          yes = "cyaneus", no = Species),
+         Species = ifelse(test = Genus == "Pallasea" & Species == "can",
+                          yes = "cancellus", no = Species),
+         Species = ifelse(test = Genus == "Spl" & Species == "zone",
+                          yes = "Zone", no = Species)) %>%
   rename(total_lipid_mg_per_g = total.lipid.mg.g)
 head(total_lipid)
 
@@ -282,7 +342,7 @@ microplastics <- microplastics_orig %>%
          FRAG_DENSITY = fragments/VOLUME_FILTERED,
          FIBER_DENSITY = fibers/VOLUME_FILTERED,
          BEAD_DENSITY = beads/VOLUME_FILTERED) %>%
-  unite(Site, location, site, sep = "-") %>%
+  unite(col = Site, location, site, sep = "-") %>%
   select(Site, rep, TOTAL_MP, VOLUME_FILTERED, DENSITY, FRAG_DENSITY, 
          FIBER_DENSITY, BEAD_DENSITY) %>%
   filter(rep != "C") %>%
@@ -293,6 +353,7 @@ microplastics <- microplastics_orig %>%
             mean_fragment_density = mean(FRAG_DENSITY),
             mean_fiber_density = mean(FIBER_DENSITY),
             mean_bead_density = mean(BEAD_DENSITY))
+
 head(microplastics)
 
 write.csv(x = microplastics, file = "../cleaned_data/microplastics_20190320.csv",
