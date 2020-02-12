@@ -11,10 +11,24 @@
 + Add standardized section headers with consistent spacing and caps
 + Add in function arguments
 + Standardize how `unite()` is called
-+ New lines at 80 characters where reasonable
 + Add line breaks between variables in the script
 + There's a `high` vector being referenced in the periphyton section but I can't find any history of it in script 01. Figure out what's supposed to be here. **update**: MM said erroneously included in this script.
 + Commenting
 + Remove dates from filenames
 + Break pipe chains with >= 10 pipes into separate objects
 + Linting
+
+#### 02_data_cleaning.R
+**Doing**:
+
+**To do**:
++ Lint
++ Comment
++ Should we use `stringsAsFactors = F` for all `read.csv` here and in other scripts?
++ Line breaks?
++ Can things be purrr'ed?
+
+**Done**:
++ Remove commented out code
++ New lines at 80 characters where reasonable
++ Add funtion arguments
