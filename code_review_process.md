@@ -22,13 +22,29 @@
 **Doing**:
 
 **To do**:
-+ Lint
-+ Comment
 + Should we use `stringsAsFactors = F` for all `read.csv` here and in other scripts?
-+ Line breaks?
-+ Can things be purrr'ed?
 
 **Done**:
 + Remove commented out code
 + New lines at 80 characters where reasonable
 + Add funtion arguments
++ Comment
++ Line breaks?
++ Can things be purrr'ed?
+  + Maybe, but for now I don't think it's worth the hoops you'd have to jump through to do it.
++ Lint
+
+#### 03_community_composition_analysis.R
+**Doing**:
+
+**To do**:
++ Remove commented out code
++ New lines at 80 characters where reasonable
++ Add funtion arguments
++ Comment
++ Line breaks?
++ Can things be purrr'ed?
+  + Maybe, but for now I don't think it's worth the hoops you'd have to jump through to do it.
++ Lint
++
+**Done**:
