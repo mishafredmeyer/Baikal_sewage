@@ -62,7 +62,7 @@ periphyton_meta_dist_long <- periphyton_meta_dist %>%
   mutate(Total_count = sum(Count))
 
 # Rework Site column as a factor
-periphyton_meta_dist_long$Site <- factor(x = periphyton_meta_dist_long$Site, 
+periphyton_meta_dist_long$Site <- factor(x = periphyton_meta_dist_long$Site,
                                          levels = c("BGO-3", "BGO-1", "BGO-2",
                                                     "KD-1", "KD-2", "MS-1",
                                                     "BK-3", "BK-2", "BK-1",
@@ -74,7 +74,7 @@ periphyton_long_clean <- periphyton_meta_dist_long %>% filter(!is.na(Site))
 
 # Plot periphyton counts as a function of site and taxa
 periphyton_meta_dist_plot <- ggplot(data = periphyton_long_clean) +
-  geom_bar(aes(x = Site, y = Total_count), fill = 'grey80', stat = "identity") +
+  geom_bar(aes(x = Site, y = Total_count), fill = "grey80", stat = "identity") +
   geom_bar(aes(x = Site, y = Count, fill = Taxon), stat = "identity") +
   scale_fill_viridis(discrete = TRUE, option = "inferno") +
   facet_wrap(~ Taxon) +
@@ -90,13 +90,10 @@ periphyton_meta_dist_plot <- ggplot(data = periphyton_long_clean) +
         strip.background = element_rect(fill = "white"),
         panel.background = element_rect(color = "black"),
         axis.title = element_text(size = 30),
-        #axis.text.x = element_text("none"),
         axis.text.y = element_text(size = 24),
-        axis.title.y = element_text(margin = margin(0,20,0,0)), 
-        axis.title.x = element_text(size = 24, margin = margin(20,0,0,0)),
-        legend.text = element_text(size = 16), 
-        #axis.title.x=element_blank(),
-        #axis.text.x=element_blank(),
+        axis.title.y = element_text(margin = margin(0, 20, 0, 0)),
+        axis.title.x = element_text(size = 24, margin = margin(20, 0, 0, 0)),
+        legend.text = element_text(size = 16),
         axis.ticks.x = element_blank())
 
 ggsave(filename = "periphyton_univariate.png", plot = periphyton_meta_dist_plot,
@@ -108,7 +105,7 @@ ggsave(filename = "periphyton_univariate.png", plot = periphyton_meta_dist_plot,
 
 # Clean dataset and add PI_group
 periphyton_meta_dist_wide <- periphyton_meta_dist %>%
-  filter(!(Site %in% c("OS-1", "OS-2", "OS-3"))) %>% 
+  filter(!(Site %in% c("OS-1", "OS-2", "OS-3"))) %>%
   mutate(PI_group = ifelse(test = Site %in% high, yes = "High", no = "NULL"),
          PI_group = ifelse(test = (Site %in% mod) | (Site %in% low),
                            yes = "Mod/Low", no = PI_group)) %>%
@@ -133,7 +130,7 @@ data_scores$Site <- periphyton_meta_dist_wide %>%
 data_scores <- inner_join(x = data_scores, y = ppcp_meta_dist, by = "Site") %>%
   mutate(PI_group = ifelse(test = Site %in% high, yes = "High", no = "NULL"),
          PI_group = ifelse(test = Site %in% mod, yes = "Mod", no = PI_group),
-         PI_group = ifelse(test = Site %in% low, yes = "Low", no = PI_group), 
+         PI_group = ifelse(test = Site %in% low, yes = "Low", no = PI_group),
          POPULATION_INTENSITY =
            (SOUTH_SHORE_DIST * (POP_SOUTH_DEV / SOUTH_SHORE_AREA)) / SOUTH_DEV_DIST)
 
@@ -142,11 +139,11 @@ data_scores$PI_group <- factor(x = data_scores$PI_group,
                                levels = c("High", "Mod", "Low"))
 
 # Pull species scores from NMDS
-species_scores <- as.data.frame(scores(x = periphyton_nmds, display = "species")) 
+species_scores <- as.data.frame(scores(x = periphyton_nmds, display = "species"))
 species_scores$species <- rownames(species_scores)
 
 # Plot the NMDS
-periphyton_PI_group_plot <- ggplot() + 
+periphyton_PI_group_plot <- ggplot() +
   geom_point(data = data_scores,
              aes(x = NMDS1, y = NMDS2, size = log10(POPULATION_INTENSITY + 1),
                  color = PI_group)) +
@@ -155,7 +152,7 @@ periphyton_PI_group_plot <- ggplot() +
   scale_color_manual(values = inferno(15)[c(3, 8, 11)],
                      name = "Distance-weighted Population Grouping") +
   guides(colour = guide_legend(override.aes = list(size = 10))) +
-  annotate("label", x = 0, y = -0.35, size = 10, 
+  annotate("label", x = 0, y = -0.35, size = 10,
            label = paste("Stress: ", round(periphyton_nmds$stress, digits = 3))) +
   theme_minimal() +
   theme(legend.position = "right",
@@ -175,8 +172,8 @@ peri_cluster <- fviz_nbclust(x = peri_community, FUNcluster = kmeans,
 peri_cluster
 
 # Run PERMANOVA
-adonis(formula = periphyton_meta_dist_wide[, 2:5] 
-       ~ periphyton_meta_dist_wide[, 28], 
+adonis(formula = periphyton_meta_dist_wide[, 2:5]
+       ~ periphyton_meta_dist_wide[, 28],
        data = periphyton_meta_dist_wide,
        method = "bray", permutations = 999)
 
@@ -245,7 +242,7 @@ ggplot(invertebrates_long) +
         axis.title = element_text(size = 20),
         axis.text.x = element_text(size = 20, angle = 45, hjust = 1),
         axis.text.y = element_text(size = 20),
-        axis.title.y = element_text(margin = margin(0, 20, 0, 0)), 
+        axis.title.y = element_text(margin = margin(0, 20, 0, 0)),
         axis.title.x = element_text(margin = margin(20, 0, 0, 0)),
         legend.text = element_text(size = 16))
 
@@ -281,7 +278,7 @@ invertebrates_without_corr_long <- invertebrate_meta_dist %>%
   separate(col = Taxon, into = c("Genus", "Species")) %>%
   filter(!(Genus %in% correlated)) %>%
   group_by(Site, Genus) %>%
-  summarize(Total_Genus = sum(Count)) %>% 
+  summarize(Total_Genus = sum(Count)) %>%
   ungroup() %>%
   group_by(Site) %>%
   mutate(Total_Site = sum(Total_Genus)) %>%
@@ -290,12 +287,12 @@ invertebrates_without_corr_long <- invertebrate_meta_dist %>%
 
 # Rework Genus and Site columns as factors
 invertebrates_without_corr_long_2 <- invertebrates_without_corr_long %>%
-  mutate(Genus = factor(x = Genus, 
-                        levels = c("Cryptoropus", "Eulimnogammarus", 
-                                   "Pallasea", "Poekilogammarus", 
-                                   "Planorbidae", "Valvatidae", 
+  mutate(Genus = factor(x = Genus,
+                        levels = c("Cryptoropus", "Eulimnogammarus",
+                                   "Pallasea", "Poekilogammarus",
+                                   "Planorbidae", "Valvatidae",
                                    "Caddisflies", "Flatworms", "Leeches")),
-         Site = factor(x = Site, 
+         Site = factor(x = Site,
                        levels = c("BGO-3", "BGO-1", "BGO-2", "KD-1", "KD-2",
                                   "MS-1", "BK-3", "BK-2", "BK-1", "SM-1", "EM-1",
                                   "LI-3", "LI-2", "LI-1")))
@@ -308,13 +305,13 @@ invertebrate_wo_corr_plot <- invertebrates_without_corr_long %>%
                         yes = "Mollusc", no = Group),
          Genus = factor(x = Genus,
                         levels = c("Cryptoropus", "Eulimnogammarus",
-                                   "Pallasea", "Poekilogammarus", 
+                                   "Pallasea", "Poekilogammarus",
                                    "Planorbidae", "Valvatidae",
-                                   "Caddisflies", "Flatworms", 
+                                   "Caddisflies", "Flatworms",
                                    "Leeches"))) %>%
   ggplot() +
-  geom_bar(aes(x = Site, y = Total_Site), alpha =0.5, stat = "identity") +
-  geom_bar(aes(x= Site, y = Total_Genus, fill = as.factor(Group)),
+  geom_bar(aes(x = Site, y = Total_Site), alpha = 0.5, stat = "identity") +
+  geom_bar(aes(x = Site, y = Total_Genus, fill = as.factor(Group)),
            stat = "identity") +
   scale_fill_viridis(discrete = TRUE, option = "inferno") +
   facet_wrap(~ Genus) +
@@ -330,7 +327,7 @@ invertebrate_wo_corr_plot <- invertebrates_without_corr_long %>%
         axis.title = element_text(size = 20),
         axis.text.x = element_text(size = 20),
         axis.text.y = element_text(size = 20),
-        axis.title.y = element_text(margin = margin(0, 20, 0, 0)), 
+        axis.title.y = element_text(margin = margin(0, 20, 0, 0)),
         axis.title.x = element_text(margin = margin(20, 0, 0, 0)),
         legend.text = element_text(size = 16))
 
@@ -373,40 +370,40 @@ data_scores$Site <- invertebrates_without_corr_wide$Site
 # Join scores with PPCP data and code into POP groups
 data_scores <- full_join(x = data_scores, y = ppcp_meta_dist, by = "Site") %>%
   mutate(POPULATION_INTENSITY =
-           (SOUTH_SHORE_DIST * (POP_SOUTH_DEV / SOUTH_SHORE_AREA)) / SOUTH_DEV_DIST, 
+           (SOUTH_SHORE_DIST * (POP_SOUTH_DEV / SOUTH_SHORE_AREA)) / SOUTH_DEV_DIST,
          POP_GROUP = ifelse(test = Site %in% low, yes = "Low", no = NA),
          POP_GROUP = ifelse(test = Site %in% mod, yes = "Mod", no = POP_GROUP),
          POP_GROUP = ifelse(test = Site %in% high, yes = "High", no = POP_GROUP),
-         POP_GROUP = factor(x = POP_GROUP, 
+         POP_GROUP = factor(x = POP_GROUP,
                             levels = c("High", "Mod", "Low")))
 
 # Pull species scores from NMDS
 species_scores <- as.data.frame(scores(x = invertebrates_metaMDS,
-                                       display = "species")) 
+                                       display = "species"))
 species_scores$species <- rownames(species_scores)
 
 # Plot NMDS
-inverts_without_corr_nmds <- ggplot() + 
+inverts_without_corr_nmds <- ggplot() +
   geom_point(data = drop_na(data_scores),
-             aes(x = NMDS1, y = NMDS2, size = log10(PPCP.SUM), 
+             aes(x = NMDS1, y = NMDS2, size = log10(PPCP.SUM),
                  color = POP_GROUP)) +
   scale_size_continuous(range = c(8, 20), guide = FALSE) +
-  scale_color_manual(values = inferno(15)[c(3, 8, 11, 14)], 
-                     name = "Distance-weighted Population Grouping") + 
+  scale_color_manual(values = inferno(15)[c(3, 8, 11, 14)],
+                     name = "Distance-weighted Population Grouping") +
   guides(colour = guide_legend(override.aes = list(size = 10))) +
   coord_equal() +
   ylim(c(-.5, .5)) +
   xlim(c(-.5, .5)) +
-  annotate("label", x = -0.15, y = -0.4, size = 10, 
+  annotate("label", x = -0.15, y = -0.4, size = 10,
            label = paste("Stress: ",
                          round(invertebrates_metaMDS$stress, digits = 3))) +
   theme(legend.position = "right",
         strip.text.x = element_text(size = 20, color = "grey80"),
-        text = element_text(size = 24), 
-        axis.title.y = element_text(margin = margin(0, 20, 0, 0)), 
+        text = element_text(size = 24),
+        axis.title.y = element_text(margin = margin(0, 20, 0, 0)),
         axis.title.x = element_text(margin = margin(20, 0, 0, 0)),
         panel.background = element_rect("white"),
-        panel.grid.major = element_line(colour = "grey80"), 
+        panel.grid.major = element_line(colour = "grey80"),
         panel.grid.minor = element_line(colour = "grey80"),
         axis.ticks = element_line(color = "grey80"))
 
@@ -422,7 +419,7 @@ inverts_wo_corr_meta_dist_wide <- full_join(x = invertebrates_without_corr_wide,
                                             y = ppcp_meta_dist,
                                             by = "Site") %>%
   mutate(POPULATION_INTENSITY =
-           (SOUTH_SHORE_DIST * (POP_SOUTH_DEV / SOUTH_SHORE_AREA)) / SOUTH_DEV_DIST, 
+           (SOUTH_SHORE_DIST * (POP_SOUTH_DEV / SOUTH_SHORE_AREA)) / SOUTH_DEV_DIST,
          POP_GROUP = ifelse(test = Site %in% c(low, mod),
                             yes = "LOW/MOD", no = NA),
          POP_GROUP = ifelse(test = Site %in% mod,
@@ -434,8 +431,7 @@ inverts_wo_corr_meta_dist_wide <- full_join(x = invertebrates_without_corr_wide,
   data.frame()
 
 # Run PERMANOVA
-adonis(formula = inverts_wo_corr_meta_dist_wide[, 3:11] ~ 
+adonis(formula = inverts_wo_corr_meta_dist_wide[, 3:11] ~
          inverts_wo_corr_meta_dist_wide[, 34],
        data = inverts_wo_corr_meta_dist_wide,
        method = "bray")
-

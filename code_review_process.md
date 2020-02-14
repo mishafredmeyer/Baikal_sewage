@@ -36,7 +36,6 @@
 
 #### 03_community_composition_analysis.R
 **Doing**:
-+ Add funtion arguments
 
 **To do**:
 + Remove commented out code
@@ -44,13 +43,13 @@
 + Comment
   - Low/high/moderate for sites - what does this mean?
 + Line breaks?
-+ Can things be purrr'ed?
-  + Maybe, but for now I don't think it's worth the hoops you'd have to jump through to do it.
-+ Lint
 + Are PI_Groups and POP_GROUPS the same thing?
++ Standardize the way that "LI-1" is removed from each dataset (i.e., make it happen once per analysis)
 + The name data_scores (and species_scores?) is reused - tailor it to each analysis?
 + Could probably improve naming of the several full_joins that happen. Similar names, not descripive enough to differentiate
 + Double check old version of code against new...making some changes that shouldn't affect anything but nervous
 + Should section 4 have more subheads?
 
 **Done**:
++ Add funtion arguments
++ Lint
