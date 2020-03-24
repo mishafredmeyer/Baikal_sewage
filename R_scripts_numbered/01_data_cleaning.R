@@ -363,7 +363,12 @@ microplastics <- microplastics_orig %>%
             mean_microplastic_density = mean(DENSITY),
             mean_fragment_density = mean(FRAG_DENSITY),
             mean_fiber_density = mean(FIBER_DENSITY),
-            mean_bead_density = mean(BEAD_DENSITY))
+            mean_bead_density = mean(BEAD_DENSITY),
+            std_dev_total_microplastics = sd(TOTAL_MP),
+            std_dev_microplastic_density = sd(DENSITY),
+            std_dev_fragment_density = sd(FRAG_DENSITY),
+            std_dev_fiber_density = sd(FIBER_DENSITY),
+            std_dev_bead_density = sd(BEAD_DENSITY))
 
 head(microplastics)
 
