@@ -1,43 +1,95 @@
-library(ggmap)
-library(grid)
+## This script creates the map of sampling locations for the associated manuscript.
+## The script also merges inverse distance weighted population metrics with sampling 
+## location to reveal the IDW population gradient over space.
+
+library(tidyverse)
+library(OpenStreetMap)
+library(ggpubr)
+library(cowplot)
+library(ggrepel)
 library(viridis)
 
 
-# 1. Load the data --------------------------------------------------------
+# Step 1: Import data and join datasets -----------------------------------
 
-metadata <- read.csv("../cleaned_data/metadata_20190320.csv", header = TRUE)
+metadata <- read.csv(file = "../cleaned_data/metadata.csv",
+                          stringsAsFactors = F)
 
-# 2. Create the map -------------------------------------------------------
+distance <- read.csv(file = "../cleaned_data/distance_weighted_population_metrics.csv", 
+                     header = TRUE)
 
-map0 <- get_googlemap(c(108.171228, 53.538112), zoom = 6, maptype = "satellite")
-map1 <- ggmap(map0) +
-  geom_point(data = metadata, aes(long, lat), color = inferno(5)[3]) +
-  #geom_path(data=xy, aes(x,y), color="red", lwd=1) +
-  xlim(c(103, 110)) +
-  ylim(c(51.5, 56)) +
+sample_points <- full_join(x = metadata, 
+                           y = distance)
+
+# Make the locs Mercator
+sample_points_merc <- projectMercator(lat = sample_points$lat,
+                                      long = sample_points$long) %>%
+  as.data.frame() %>%
+  bind_cols(., sample_points)
+
+
+# Step 2: Start building the map ------------------------------------------
+
+# Get a basemap
+# Options: https://www.r-bloggers.com/the-openstreetmap-package-opens-up/
+base_map <- openmap(upperLeft = c(55.915113,102.2324553),
+                      lowerRight = c(51.1800703,110.8),
+                      type = 'stamen-toner') %>%
+  openproj()
+
+base_map_zoom <- openmap(upperLeft = c(52.15, 104.75),
+                         lowerRight = c(51.75, 105.55),
+                         type = 'bing', zoom = 11) %>%
+  openproj()
+
+inset_map <- autoplot(base_map) +
+  geom_point(data = sample_points_merc,
+             aes(x = long, y = lat,
+                 fill = log10(distance_weighted_population)),
+             alpha = 1,  color = "grey70", size = 3,
+             shape = 21) +
+  scale_fill_viridis(option = "plasma") + 
+  theme(axis.text.x = element_text(size = 10),
+        axis.text.y = element_text(size = 10),
+        plot.background = element_rect(fill = "snow1")) +
   xlab("") +
   ylab("") +
-  theme(axis.title.x = element_blank(),
+  theme(legend.position = "none",
+        axis.title.x = element_blank(),
         axis.title.y = element_blank())
 
-map2 <- get_googlemap(c(105.199013, 51.944224), zoom = 10, maptype = "satellite")
-map3 <- ggmap(map2) +
-  geom_point(data = metadata, aes(x = long, y = lat), fill = inferno(5)[3],
-             size = 10, stroke = 2, shape = 21) +
-  xlim(c(104.8, 105.6)) +
-  ylim(c(51.8, 52.1))
+zoom_map <- autoplot(base_map_zoom) +
+  geom_point(data = sample_points_merc,
+             aes(x = long, y = lat,
+                 size = log10(distance_weighted_population),
+                 fill = log10(distance_weighted_population)),
+             alpha = 0.8,  color = "grey70", shape = 21,
+             stroke = 2.5) +
+  scale_fill_viridis(option = "plasma", name = "log10(IDW Pop)") + 
+  scale_size_continuous(range = c(5,20), guide = 'none') +
+  xlab("Longitude") +
+  ylab("Latitude") +
+  annotate(geom = "text", label = "Bolshoe Goloustnoe",
+           x = 105.4, y = 52.06, color = "white", size = 10) +
+  annotate(geom = "text", label = "Bolshie Koty",
+           x = 105.075, y = 51.935, color = "white", size = 10) +
+  annotate(geom = "text", label = "Listvyanka",
+           x = 104.85, y = 51.9, color = "white", size = 10) +
+  theme(legend.key.height = unit(1, "in"), 
+        legend.key.width = unit(0.65, "in"),
+        legend.text = element_text(size = 20),
+        legend.title = element_text(size = 24),
+        panel.background = element_blank(),
+        axis.title = element_text(size = 24),
+        axis.text = element_text(size = 20))
 
 
-g1 <- ggplotGrob(map3)
-grid.draw(g1)
+# https://stackoverflow.com/questions/5219671/it-is-possible-to-create-inset-graphs
+baikal_combine <- ggdraw() +
+  draw_plot(zoom_map) +
+  draw_plot(inset_map, x = -0.01, y = 0.6, width = .455, height = .26, scale = 1)
 
-pushViewport(viewport(x=0.25, y=0.8, w=.3, h=.3))
-xy <- data.frame(x=c(105.4, 105.4, 105.6, 105.6, 105.4), 
-                 y=c(51.8, 51.8, 51.9, 51.9, 51.8))
-p2 <- ggmap(map1) + 
-  geom_path(data=xy, aes(x,y), color="red", lwd=1) + 
-  theme_void()
-g2 <- ggplotGrob(map1)
-grid.draw(g2)
-grid.rect(gp=gpar(col="white", lwd=5))
-popViewport()
+## This plot is associated with Figure 1 in the accompanying manuscript. 
+
+ggsave(filename = "../figures/baikal_map.png", plot = baikal_combine, device = "png",
+       width = 18, height = 9, units = "in")
