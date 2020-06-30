@@ -1,8 +1,8 @@
-## This script is meant to perform multivariate and some univariate analysis of 
-## macroinvertebrates and periphyton community composition along Lake Baikal's
-## southwestern shoreline. These community compositions are then related to 
-## sewage indicator concentrations and inverse distance weight population
-## along the shoreline. 
+# This script is meant to perform multivariate and some univariate analysis of
+# macroinvertebrates and periphyton community composition along Lake Baikal's
+# southwestern shoreline. These community compositions are then related to
+# sewage indicator concentrations and inverse distance weight population
+# along the shoreline.
 
 # 1. Load packages --------------------------------------------------------
 
@@ -14,6 +14,7 @@ library(viridisLite)
 library(vegan)
 library(factoextra)
 library(cluster)
+library(ggpubr)
 
 # Pull in function for plotting correlations
 source("panel_cor_function.R")
@@ -22,22 +23,27 @@ source("panel_cor_function.R")
 # 2. Load the data --------------------------------------------------------
 
 # Invertebrate data
-invertebrates <- read.csv("../cleaned_data/invertebrates.csv", header = TRUE)
+invertebrates <- read.csv("../cleaned_data/invertebrates.csv",
+                          header = TRUE, stringsAsFactors = FALSE)
 
 # Periphyton data
-periphyton <- read.csv("../cleaned_data/periphyton.csv", header = TRUE)
+periphyton <- read.csv("../cleaned_data/periphyton.csv",
+                       header = TRUE, stringsAsFactors = FALSE)
 
 # Site metadata
-metadata <- read.csv("../cleaned_data/metadata.csv", header = TRUE)
+metadata <- read.csv("../cleaned_data/metadata.csv",
+                     header = TRUE, stringsAsFactors = FALSE)
 
 # Site distance data
-distance <- read.csv("../cleaned_data/distance_weighted_population_metrics.csv", header = TRUE)
+distance <- read.csv("../cleaned_data/distance_weighted_population_metrics.csv",
+                     header = TRUE, stringsAsFactors = FALSE)
 
 # Join site metadata with distance data
 metadata_dist <- full_join(x = metadata, y = distance, by = "Site")
 
 # PPCP data
-ppcp <- read.csv("../cleaned_data/ppcp.csv", header = TRUE)
+ppcp <- read.csv("../cleaned_data/ppcp.csv",
+                 header = TRUE, stringsAsFactors = FALSE)
 
 # Join PPCP data with metadata/distance and select sites of interest
 ppcp_meta_dist <- full_join(x = ppcp, y = metadata_dist, by = "Site") %>%
@@ -48,17 +54,19 @@ ppcp_meta_dist <- full_join(x = ppcp, y = metadata_dist, by = "Site") %>%
 # These groupings are derived from the inverse distance weighted population metric,
 # where sites with "low" IDW population are recorded in the "low" vector, moderate in "mod",
 # and high in the "high" vector. These same delineations are used in both the periphyton
-# and invertebrate analysis. 
+# and invertebrate analysis.
 
 low <- c("BGO-1", "BGO-2", "BGO-3", "KD-1", "KD-2", "MS-1")
-mod <- c( "BK-2", "BK-3", "SM-1")
+mod <- c("BK-2", "BK-3", "SM-1")
 high <- c("BK-1", "EM-1", "LI-3", "LI-2", "LI-1")
+
 
 # 3. Periphyton analysis ---------------------------------------------------
 
 # Join periphyton data with metadata/distance and create custom metric
 periphyton_meta_dist <- full_join(x = periphyton, y = ppcp_meta_dist,
-                                  by = "Site") 
+                                  by = "Site")
+
 
 # 3.1 Univariate analysis -------------------------------------------------
 
@@ -104,8 +112,8 @@ periphyton_meta_dist_plot <- ggplot(data = periphyton_long_clean) +
         legend.text = element_text(size = 16),
         axis.ticks.x = element_blank())
 
-# This plot is not included in the associated manuscript but is included to 
-## offer insight for multivariate analyeses. 
+# This plot is not included in the associated manuscript but is included to
+# offer insight for multivariate analyeses.
 
 ggsave(filename = "periphyton_univariate.png", plot = periphyton_meta_dist_plot,
        device = "png", path = "../figures/", width = 11, height = 8.5,
@@ -117,9 +125,12 @@ ggsave(filename = "periphyton_univariate.png", plot = periphyton_meta_dist_plot,
 # Clean dataset and add IDW_pop_group
 periphyton_meta_dist_wide <- periphyton_meta_dist %>%
   filter(!(Site %in% c("OS-1", "OS-2", "OS-3"))) %>%
-  mutate(IDW_pop_group = ifelse(test = Site %in% high, yes = "High", no = "NULL"),
-         IDW_pop_group = ifelse(test = (Site %in% mod), yes = "Mod", no = IDW_pop_group),
-         IDW_pop_group = ifelse(test = (Site %in% low), yes = "Low", no = IDW_pop_group)) %>%
+  mutate(IDW_pop_group = ifelse(test = Site %in% high,
+                                yes = "High", no = "NULL"),
+         IDW_pop_group = ifelse(test = (Site %in% mod),
+                                yes = "Mod", no = IDW_pop_group),
+         IDW_pop_group = ifelse(test = (Site %in% low),
+                                yes = "Low", no = IDW_pop_group)) %>%
   as.data.frame()
 
 # Define community for NMDS
@@ -137,13 +148,16 @@ data_scores$Site <- periphyton_meta_dist_wide %>%
 
 # Join scores with PPCP data and code into PI groups
 data_scores <- inner_join(x = data_scores, y = ppcp_meta_dist, by = "Site") %>%
-  mutate(IDW_pop_group = ifelse(test = Site %in% high, yes = "High", no = "NULL"),
-         IDW_pop_group = ifelse(test = Site %in% mod, yes = "Mod", no = IDW_pop_group),
-         IDW_pop_group = ifelse(test = Site %in% low, yes = "Low", no = IDW_pop_group))
+  mutate(IDW_pop_group = ifelse(test = Site %in% high,
+                                yes = "High", no = "NULL"),
+         IDW_pop_group = ifelse(test = Site %in% mod,
+                                yes = "Mod", no = IDW_pop_group),
+         IDW_pop_group = ifelse(test = Site %in% low,
+                                yes = "Low", no = IDW_pop_group))
 
 # Rework IDW_pop_group column as a factor
 data_scores$IDW_pop_group <- factor(x = data_scores$IDW_pop_group,
-                               levels = c("High", "Mod", "Low"))
+                                    levels = c("High", "Mod", "Low"))
 
 # Pull species scores from NMDS
 species_scores <- as.data.frame(scores(x = periphyton_nmds, display = "species"))
@@ -154,8 +168,7 @@ periphyton_IDW_pop_group_plot <- ggplot() +
   geom_point(data = data_scores,
              aes(x = NMDS1, y = NMDS2, size = log10(distance_weighted_population),
                  color = IDW_pop_group)) +
-  scale_size_continuous(range = c(5,20), guide = FALSE) +
-  #xlim(c(-0.5, 0.5)) +
+  scale_size_continuous(range = c(5, 20), guide = FALSE) +
   scale_color_manual(values = inferno(15)[c(3, 8, 11)],
                      name = "IDW Population Grouping") +
   guides(colour = guide_legend(override.aes = list(size = 10))) +
@@ -169,8 +182,8 @@ periphyton_IDW_pop_group_plot
 
 # Export plot
 ggsave(filename = "../figures/periphyton_IDW_pop_group_plot.png",
-       plot = periphyton_IDW_pop_group_plot, device = "png", height = 10, width = 20,
-       dpi = 300)
+       plot = periphyton_IDW_pop_group_plot, device = "png", height = 10,
+       width = 20, dpi = 300)
 
 # Vizualize optimum cluster number
 peri_cluster <- fviz_nbclust(x = peri_community, FUNcluster = kmeans,
@@ -179,7 +192,7 @@ peri_cluster <- fviz_nbclust(x = peri_community, FUNcluster = kmeans,
 peri_cluster
 
 # Export plot
-# This plot correcspond with figure S1a in the associated manuscript. 
+# This plot correcspond with figure S1a in the associated manuscript.
 ggsave(filename = "../figures/periphyton_kmeans_analysis.png",
        plot = peri_cluster, device = "png", height = 10, width = 20,
        dpi = 300)
@@ -196,6 +209,7 @@ simper_results <- simper(comm = periphyton_meta_dist_wide[, 2:7],
 
 summary(simper_results)
 
+
 # 4. Invertebrate analysis ---------------------------------------------------
 
 
@@ -203,7 +217,7 @@ summary(simper_results)
 
 # Convert invertebrate data to long format and add total count
 invertebrate_meta_dist <- full_join(x = invertebrates, y = ppcp_meta_dist,
-                                    by = "Site") 
+                                    by = "Site")
 
 # Define amphipod genera
 amphipods <- c("Eulimnogammarus", "Poekilogammarus", "Pallasea", "Hyallela",
@@ -287,7 +301,7 @@ head(invertebrates_condensed_wide)
 pairs(invertebrates_condensed_wide[, 3:18], upper.panel = panel.cor)
 
 # Choronomids and Hyallela were not preserved well, and therefore were not well
-# identified in the dataset. This step removes them from further analysis. 
+# identified in the dataset. This step removes them from further analysis.
 
 poorly_preserved <- c("Choronomids", "Hyallela")
 
@@ -313,7 +327,7 @@ invertebrates_well_preserved_long_2 <- invertebrates_well_preserved_long %>%
                                    "Pallasea", "Poekilogammarus",
                                    "Acroloxidae", "Baicaliidae", "Benedictidate",
                                    "Maackia", "Planorbidae", "Valvatidae",
-                                   "Asellidae", "Caddisflies", "Flatworms", 
+                                   "Asellidae", "Caddisflies", "Flatworms",
                                    "Leeches")),
          Site = factor(x = Site,
                        levels = c("BGO-2",  "BGO-3", "KD-1",
@@ -333,7 +347,7 @@ invertebrate_well_preserved_plot <- invertebrates_well_preserved_long %>%
                                    "Pallasea", "Poekilogammarus",
                                    "Acroloxidae", "Baicaliidae", "Benedictidate",
                                    "Maackia", "Planorbidae", "Valvatidae",
-                                   "Asellidae", "Caddisflies", "Flatworms", 
+                                   "Asellidae", "Caddisflies", "Flatworms",
                                    "Leeches"))) %>%
   ggplot() +
   geom_bar(aes(x = Site, y = Total_Site), alpha = 0.5, stat = "identity") +
@@ -365,7 +379,7 @@ ggsave(filename = "../figures/invertebrate_well_preserved_plot.png",
 
 # 4.2 Multivariate analysis -----------------------------------------------
 
-# Create a cleaned up wide format invertebrate genus dataset with well preserved 
+# Create a cleaned up wide format invertebrate genus dataset with well preserved
 # genera. In this step we also remove rare species (i.e., taxa representing less
 # than 1% of the intercommunity abundance).
 invertebrates_well_preserved_wide <- invertebrate_meta_dist %>%
@@ -384,7 +398,7 @@ invertebrates_well_preserved_wide <- invertebrate_meta_dist %>%
   group_by(Genus) %>%
   mutate(mean_prop = mean(prop_genus, na.rm = TRUE)) %>%
   filter(mean_prop >= 0.01) %>%
-  select(-mean_prop, -prop_genus) %>% 
+  select(-mean_prop, -prop_genus) %>%
   spread(key = Genus, value = Total_Genus)
 
 # Square-root transform
@@ -410,10 +424,12 @@ data_scores$Site <- invertebrates_well_preserved_wide$Site
 
 # Join scores with PPCP data and code into IDW_pop_group
 data_scores <- full_join(x = data_scores, y = ppcp_meta_dist, by = "Site") %>%
-  mutate(IDW_pop_group = ifelse(test = Site %in% c(low, mod), yes = "Low/Mod", no = NA),
-         IDW_pop_group = ifelse(test = Site %in% high, yes = "High", no = IDW_pop_group),
+  mutate(IDW_pop_group = ifelse(test = Site %in% c(low, mod),
+                                yes = "Low/Mod", no = NA),
+         IDW_pop_group = ifelse(test = Site %in% high,
+                                yes = "High", no = IDW_pop_group),
          IDW_pop_group = factor(x = IDW_pop_group,
-                            levels = c("High", "Low/Mod")))
+                                levels = c("High", "Low/Mod")))
 
 # Plot NMDS
 inverts_well_preserved_nmds <- ggplot() +
@@ -442,19 +458,19 @@ inverts_well_preserved_nmds <- ggplot() +
 
 inverts_well_preserved_nmds
 
-# Export plot. This plot is Figure 4 in the associated manuscript. 
+# Export plot. This plot is Figure 4 in the associated manuscript.
 ggsave(filename = "../figures/inverts_well_preserved_nmds.png",
        plot = inverts_well_preserved_nmds, device = "png",
        height = 10, width = 20, dpi = 300)
 
 # Re-join the metadata and distance data back in with invert data
 inverts_well_preserved_meta_dist_wide <- full_join(x = invertebrates_well_preserved_wide,
-                                            y = ppcp_meta_dist,
-                                            by = "Site") %>%
+                                                   y = ppcp_meta_dist,
+                                                   by = "Site") %>%
   mutate(IDW_pop_group = ifelse(test = Site %in% c(low, mod),
-                            yes = "Low/Mod", no = NA),
+                                yes = "Low/Mod", no = NA),
          IDW_pop_group = ifelse(test = Site %in% high,
-                            yes = "High", no = IDW_pop_group),
+                                yes = "High", no = IDW_pop_group),
          distance_weighted_population = log10(distance_weighted_population)) %>%
   data.frame()
 
@@ -465,19 +481,20 @@ adonis(formula = sqrt(inverts_well_preserved_meta_dist_wide[, 3:12]) ~
        method = "bray")
 
 # Run SIMPER
-simper_results <- simper(comm = sqrt(inverts_well_preserved_meta_dist_wide[, 3:12]), 
-                         group = inverts_well_preserved_meta_dist_wide[, 27], 
+simper_results <- simper(comm = sqrt(inverts_well_preserved_meta_dist_wide[, 3:12]),
+                         group = inverts_well_preserved_meta_dist_wide[, 27],
                          permutations = 999)
 
 summary(simper_results)
 
 # Combine k-means WSS plots into one.
-# This plot is associated with Figure S1 in the associated manuscript. 
+# This plot is associated with Figure S1 in the associated manuscript.
 
 ggarrange(peri_cluster, invert_cluster, ncol = 2, nrow = 1, labels = "AUTO") %>%
-  ggexport(filename = "../figures/keams_combined_plot.png", 
+  ggexport(filename = "../figures/keams_combined_plot.png",
            hieght = 600, width = 1200, res = 120)
 
-ggarrange(periphyton_IDW_pop_group_plot, inverts_well_preserved_nmds, ncol = 2, nrow = 1, labels = "AUTO") %>%
-  ggexport(filename = "../figures/nmds_combined_plot.png", 
+ggarrange(periphyton_IDW_pop_group_plot, inverts_well_preserved_nmds,
+          ncol = 2, nrow = 1, labels = "AUTO") %>%
+  ggexport(filename = "../figures/nmds_combined_plot.png",
            hieght = 2000, width = 3000, res = 120)

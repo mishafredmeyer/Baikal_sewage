@@ -1,4 +1,4 @@
-## This script is associated with 
+# This script is associated with 
 
 # 1. Load packages --------------------------------------------------------
 
@@ -45,11 +45,11 @@ metadata_dist <- full_join(x = metadata, y = distance, by = "Site")
 # 3. PPCP analysis --------------------------------------------------------
 
 # Join PPCP data with metadata/distance and create two custom metrics
-ppcp_meta_dist <- full_join(x = ppcp, y = metadata_dist, by = "Site") 
+ppcp_meta_dist <- full_join(x = ppcp, y = metadata_dist, by = "Site")
 
 # Analyze total PPCPs as a function of population intensity
 ppcp_PI_model <- lm(log10(ppcp_sum) ~ log10(distance_weighted_population),
-                    data = ppcp_meta_dist) 
+                    data = ppcp_meta_dist)
 
 # View model results
 summary(ppcp_PI_model)
@@ -79,7 +79,7 @@ ggsave(filename = "../figures/ppcp_PI_plot.png", plot = ppcp_PI_plot,
 # 4. Nutrient analysis ----------------------------------------------------
 
 # Join PPCP data with metadata/distance and create custom metric
-nutrients_meta_dist <- full_join(x = nutrients, y = metadata_dist, by = "Site") 
+nutrients_meta_dist <- full_join(x = nutrients, y = metadata_dist, by = "Site")
 
 
 # 4.1 Phosphorus ----------------------------------------------------------
@@ -176,7 +176,7 @@ ggsave(filename = "../figures/ammonium_PI_plot.png", plot = ammonium_PI_plot,
 
 # Join stable isotope data with metadata/distance and create custom metric
 stable_isotopes_meta_dist <- full_join(x = stable_isotopes, y = metadata_dist,
-                                       by = "Site") 
+                                       by = "Site")
 
 # 5.1 N15 -----------------------------------------------------------------
 
@@ -242,7 +242,7 @@ ggsave(filename = "../figures/c13_PI_plot.png", plot = c13_PI_plot,
 
 # Join Chl a data with metadata/distance and create custom metric
 chlorophylla_meta_dist <- full_join(x = chlorophylla, y = metadata_dist,
-                                    by = "Site") 
+                                    by = "Site")
 
 # Analyze chl a as a function of population intensity
 chlorophylla_PI_model <- lm((mean_chlorophylla) ~ log10(distance_weighted_population),
@@ -287,7 +287,7 @@ microplastics <- microplastics %>%
 
 # Join microplastics data with metadata/distance and create custom metric
 microplastics_meta_dist <- full_join(x = microplastics, y = metadata_dist,
-                                     by = "Site") 
+                                     by = "Site")
 
 
 # 7.1 Mean total microplastics --------------------------------------------
