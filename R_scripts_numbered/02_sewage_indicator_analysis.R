@@ -12,31 +12,31 @@ library(ggpubr)
 
 # PPCP Data
 ppcp <- read.csv(file = "../cleaned_data/ppcp.csv",
-                 header = TRUE)
+                 header = TRUE, stringsAsFactors = FALSE)
 
 # Nutrient data
 nutrients <- read.csv(file = "../cleaned_data/nutrients.csv",
-                      header = TRUE)
+                      header = TRUE, stringsAsFactors = FALSE)
 
 # Stable isotope data
 stable_isotopes <- read.csv(file = "../cleaned_data/stable_isotopes.csv",
-                            header = TRUE)
+                            header = TRUE, stringsAsFactors = FALSE)
 
 # Chlorophyll a data
 chlorophylla <- read.csv(file = "../cleaned_data/chlorophylla.csv",
-                         header = TRUE)
+                         header = TRUE, stringsAsFactors = FALSE)
 
 # Microplastics data
 microplastics <- read.csv(file = "../cleaned_data/microplastics.csv",
-                          header = TRUE)
+                          header = TRUE, stringsAsFactors = FALSE)
 
 # Site metadata
 metadata <- read.csv(file = "../cleaned_data/metadata.csv",
-                     header = TRUE)
+                     header = TRUE, stringsAsFactors = FALSE)
 
 # Site distance data
 distance <- read.csv(file = "../cleaned_data/distance_weighted_population_metrics.csv",
-                     header = TRUE)
+                     header = TRUE, stringsAsFactors = FALSE)
 
 # Join site metadata with distance data
 metadata_dist <- full_join(x = metadata, y = distance, by = "Site")
