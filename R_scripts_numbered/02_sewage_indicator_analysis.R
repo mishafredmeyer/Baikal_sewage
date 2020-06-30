@@ -288,6 +288,8 @@ microplastics <- microplastics %>%
 # Join microplastics data with metadata/distance and create custom metric
 microplastics_meta_dist <- full_join(x = microplastics, y = metadata_dist,
                                      by = "Site") 
+
+
 # 7.1 Mean total microplastics --------------------------------------------
 
 # Analyze mean total microplastics as a function of population intensity

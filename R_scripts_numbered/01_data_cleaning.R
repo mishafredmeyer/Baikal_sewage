@@ -15,23 +15,9 @@ ppcp_orig <- read.csv(file = "../original_data/PPCP_Baikal_orig_20180524.csv",
 # Select variables and sites of interest, sum PPCPs
 ppcp <- ppcp_orig %>%
   select(Sample_ID, Caffeine, Acetaminophen, X1.7.Dimethylxanthine, Cotinine) %>%
-  filter(Sample_ID == "LI-1" |
-           Sample_ID == "LI-2" |
-           Sample_ID == "LI-3" |
-           Sample_ID == "BK-1" |
-           Sample_ID == "BK-2" |
-           Sample_ID == "BK-3" |
-           Sample_ID == "BGO-1" |
-           Sample_ID == "BGO-2" |
-           Sample_ID == "BGO-3" |
-           Sample_ID == "KD-1" |
-           Sample_ID == "KD-2" |
-           Sample_ID == "EM-1" |
-           Sample_ID == "MS-1" |
-           Sample_ID == "SM-1" |
-           Sample_ID == "OS-1" |
-           Sample_ID == "OS-2" |
-           Sample_ID == "OS-3") %>%
+  filter(Sample_ID %in% c("LI-1", "LI-2",  "LI-3", "BK-1", "BK-2", "BK-3",
+                          "BGO-1", "BGO-2", "BGO-3", "KD-1", "KD-2", "EM-1",
+                          "MS-1", "SM-1", "OS-1", "OS-2", "OS-3")) %>%
   group_by(Sample_ID) %>%
   mutate(ppcp_sum = Caffeine + Acetaminophen + X1.7.Dimethylxanthine + Cotinine) %>%
   rename(Paraxanthine = X1.7.Dimethylxanthine, Site = Sample_ID)
@@ -72,23 +58,9 @@ chla_orig <- read.csv(file = "../original_data/chlorophyll_20170117.csv",
 # Select sites of interest and take average chl a by site
 chlorophylla <- chla_orig %>%
   select(Station, chl_conc) %>%
-  filter(Station == "LI-1" |
-           Station == "LI-2" |
-           Station == "LI-3" |
-           Station == "BK-1" |
-           Station == "BK-2" |
-           Station == "BK-3" |
-           Station == "BGO-1" |
-           Station == "BGO-2" |
-           Station == "BGO-3" |
-           Station == "KD-1" |
-           Station == "KD-2" |
-           Station == "EM-1" |
-           Station == "MS-1" |
-           Station == "SM-1" |
-           Station == "OS-1" |
-           Station == "OS-2" |
-           Station == "OS-3") %>%
+  filter(Station %in% c("LI-1", "LI-2", "LI-3", "BK-1", "BK-2", "BK-3",
+                        "BGO-1", "BGO-2", "BGO-3", "KD-1", "KD-2", "EM-1",
+                        "MS-1", "SM-1", "OS-1", "OS-2", "OS-3")) %>%
   group_by(Station) %>%
   summarize(mean_chlorophylla = mean(chl_conc)) %>%
   rename(Site = Station)
@@ -348,7 +320,7 @@ microplastics_orig <- read.csv(file = "../original_data/microplastics_mfm_201710
 microplastics_uncorrected <- microplastics_orig %>%
   select(-comments) %>%
   unite(col = "Site", location, site, sep = "-") %>%
-  filter(rep != "C") 
+  filter(rep != "C")
 
 # Separate out the controls so that they can be removed from
 # the experimental counts
@@ -363,22 +335,22 @@ microplastics_controls <- microplastics_orig %>%
 
 microplastics_corrected <- left_join(x = microplastics_uncorrected, microplastics_controls,
                                      by = "Site") %>%
-  mutate(VOLUME_FILTERED = (volume_rep*volume) / 1000,
+  mutate(VOLUME_FILTERED = (volume_rep * volume) / 1000,
          fragments_corrected = fragments - fragment_controls,
-         fragments_corrected = ifelse(test = fragments_corrected < 0, 
+         fragments_corrected = ifelse(test = fragments_corrected < 0,
                                       yes = 0, no = fragments_corrected),
          fibers_corrected = fibers - fiber_controls,
-         fibers_corrected = ifelse(test = fibers_corrected < 0, 
+         fibers_corrected = ifelse(test = fibers_corrected < 0,
                                    yes = 0, no = fibers_corrected),
          beads_corrected = beads - beads_controls,
-         beads_corrected = ifelse(test = beads_corrected < 0, 
+         beads_corrected = ifelse(test = beads_corrected < 0,
                                   yes = 0, no = beads_corrected),
-         total_microplastics = fragments_corrected + fibers_corrected + beads_corrected, 
+         total_microplastics = fragments_corrected + fibers_corrected + beads_corrected,
          density = total_microplastics / VOLUME_FILTERED,
          fragment_density = fragments_corrected / VOLUME_FILTERED,
          fiber_density = fibers_corrected / VOLUME_FILTERED,
          bead_density = beads_corrected / VOLUME_FILTERED) %>%
-  select(Site, rep, total_microplastics, density, 
+  select(Site, rep, total_microplastics, density,
          fragment_density, fiber_density, bead_density)
 
 head(microplastics_corrected)
