@@ -1,5 +1,5 @@
-## This script aggregates data to produce tables used within the 
-## associated manuscript. 
+# This script aggregates data to produce tables used within the
+# associated manuscript.
 
 library(dplyr)
 library(tidyr)

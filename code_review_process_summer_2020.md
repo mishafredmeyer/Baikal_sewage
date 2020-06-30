@@ -41,7 +41,7 @@
  **Doing**:
 
  **To do**:
-  + Does the "Drapa" replacement in the EFA data_scores have an accidental space before it? (" Drapa spp.")  
+  + Does the "Drapa" replacement in the EFA data_scores have an accidental space before it? (" Drapa spp.")
 
  **Done**:
   + Some formatting changes
@@ -51,4 +51,14 @@
   + Changed `mean_var` definition to include naming inside the function call so avoid the next two lines of renaming
   + I translated the code chunk for all data_scores into mutates
   + Filled in some function arguments
-  +
+  + Converted peri_ppcp_lm and invert_ppcp_lm to `filter()`
+  + Linting
+
+  #### 05_table_formatting.R
+  **Doing**:
+
+  **To do**:
+   +
+
+  **Done**:
+   + 
