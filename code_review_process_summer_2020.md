@@ -58,7 +58,49 @@
   **Doing**:
 
   **To do**:
-   +
+   + Consider shortening names like Categorical_distance_weighted_population (I think the style guide says something ~30 characters max)
 
   **Done**:
-   + 
+  + Some formatting changes
+  + Changed to include `"stringsAsFactors" = FALSE` in the `read.csv()` statements, mostly for consistency with other scripts.
+  + Filled out function args and `by` for `full_join`s at end of script
+
+  #### 06_map_making.R
+  **Doing**:
+
+  **To do**:
+   + Might need to cite the map imagery in order to use it. I can't remember what the guidelines are for this (i.e., how, where, etc.), but I know it's something that comes up with map imagery in these packages sometimes.
+
+  **Done**:
+  + Some formatting changes
+  + Changed to include `"stringsAsFactors" = FALSE` in the `read.csv()` statements, mostly for consistency with other scripts.
+  + Added some additional in-line comments
+  + Linting
+
+  #### 07_inverse_distance_weighted_calculation.R
+  **Doing**:
+
+  **To do**:
+   + There are some warnings from `st_centroid`. Just want to make sure that these don't impact the accuracy of anything.
+
+  **Done**:
+  + Some formatting changes
+  + Changed to include `"stringsAsFactors" = FALSE` in the `read.csv()` statements, mostly for consistency with other scripts.
+  + Replaced the line `as_tibble()` in loc_areas with `enframe(name = NULL)` per tidyverse warning
+  + Filled in some function arguments
+  + Added section breaks
+  + Specified `by = c("Site")` for `full_join` in loc_shoreline...
+  + Removed quotes in `rename` calls
+  + Removed commented out code in locs_centroids
+  + Linting
+
+  #### panel_cor_function.R
+  **Doing**:
+
+  **To do**:
+   + If this came from an external source (e.g. Stackoverflow), should link to this in the script probably
+
+  **Done**:
+  + Some formatting changes
+  + Added a comment to the top of the script
+  + Linting
