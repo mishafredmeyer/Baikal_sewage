@@ -1,8 +1,7 @@
 # This script aggregates data to produce tables used within the
 # associated manuscript.
 
-library(dplyr)
-library(tidyr)
+library(tidyverse)
 library(stringr)
 
 
@@ -27,13 +26,14 @@ distance <- read.csv(file = "../cleaned_data/distance_weighted_population_metric
 # 2. Site metadata table --------------------------------------------------
 
 metadata_formatted <- metadata %>%
-  select(-mid_temp, -bottom_temp) %>%
+  select(-mid_temp_celsius, -bottom_temp_celsius) %>%
   rename(Latitude = lat,
          Longitude = long,
-         Depth_m = depth,
-         Distance_to_shore_m = dist_to_shore,
-         Air_Temperature_C = air_temp,
-         Surface_Temperature_C = surface_temp) %>%
+         Depth_m = depth_m,
+         Distance_to_shore_m = distance_to_shore_m,
+         Air_Temperature_C = air_temp_celsius,
+         Surface_Temperature_C = surface_temp_celsius,
+         Site = site) %>%
   mutate(Adjacent_Population = ifelse(test = Site %in% c("BGO-2", "BGO-3"),
                                       yes = 600, no = 0),
          Adjacent_Population = ifelse(test = Site %in% c("BK-1", "BK-2", "BK-3"),
@@ -62,10 +62,10 @@ write.csv(x = ppcp_formatted, file = "../tables/ppcp.csv",
 # 4. Nutrients table ------------------------------------------------------
 
 nutrients_formatted <- nutrients %>%
-  select(-mean_TP_mg_dm3) %>%
-  rename(NH4_mg_dm3 = mean_NH4_mg_dm3,
-         NO3_mg_dm3 = mean_NO3_mg_dm3,
-         PO4_mg_dm3 = mean_TPO43_mg_dm3)
+  select(-mean_tp_mg_dm3) %>%
+  rename(NH4_mg_dm3 = mean_nh4_mg_dm3,
+         NO3_mg_dm3 = mean_no3_mg_dm3,
+         PO4_mg_dm3 = mean_tpo43_mg_dm3)
 
 write.csv(x = nutrients_formatted, file = "../tables/nutrients.csv",
           row.names = FALSE)
@@ -74,7 +74,7 @@ write.csv(x = nutrients_formatted, file = "../tables/nutrients.csv",
 # 5. Microplastics table --------------------------------------------------
 
 microplastics_formatted <- microplastics %>%
-  group_by(Site) %>%
+  group_by(site) %>%
   summarize(mean_microplastic_density = mean(density),
             mean_fragment_density = mean(fragment_density),
             mean_fiber_density = mean(fiber_density),
@@ -98,9 +98,9 @@ high <- c("BK-1", "EM-1", "LI-3", "LI-2", "LI-1", "OS-2")
 
 meta_nut_ppcp_mp <- full_join(x = metadata_formatted,
                               y = nutrients_formatted,
-                              by = c("Site")) %>%
-  full_join(x = ., y = ppcp_formatted, by = c("Site")) %>%
-  full_join(x = ., y = distance, by = c("Site")) %>%
+                              by = c("Site" = "site")) %>%
+  full_join(x = ., y = ppcp_formatted, by = c("Site" = "site")) %>%
+  full_join(x = ., y = distance, by = c("Site" = "site")) %>%
   mutate(Categorical_distance_weighted_population = ifelse(test = Site %in% low,
                                                            yes = "Low", no = NA),
          Categorical_distance_weighted_population = ifelse(test = Site %in% mod,
@@ -109,7 +109,7 @@ meta_nut_ppcp_mp <- full_join(x = metadata_formatted,
          Categorical_distance_weighted_population = ifelse(test = Site %in% high,
                                                            yes = "High",
                                                            no = Categorical_distance_weighted_population)) %>%
-  select(Site, NH4_mg_dm3:Cotinine, distance_weighted_population,
+  select(Site, NH4_mg_dm3:cotinine, distance_weighted_population,
          Categorical_distance_weighted_population)
 
 write.csv(x = meta_nut_ppcp_mp, file = "../tables/combined_table3.csv",
