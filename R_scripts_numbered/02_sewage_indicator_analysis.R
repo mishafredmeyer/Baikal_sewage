@@ -39,13 +39,13 @@ distance <- read.csv(file = "../cleaned_data/distance_weighted_population_metric
                      header = TRUE, stringsAsFactors = FALSE)
 
 # Join site metadata with distance data
-metadata_dist <- full_join(x = metadata, y = distance, by = "Site")
+metadata_dist <- full_join(x = metadata, y = distance, by = "site")
 
 
 # 3. PPCP analysis --------------------------------------------------------
 
 # Join PPCP data with metadata/distance and create two custom metrics
-ppcp_meta_dist <- full_join(x = ppcp, y = metadata_dist, by = "Site")
+ppcp_meta_dist <- full_join(x = ppcp, y = metadata_dist, by = "site")
 
 # Analyze total PPCPs as a function of population intensity
 ppcp_PI_model <- lm(log10(ppcp_sum) ~ log10(distance_weighted_population),
@@ -79,13 +79,13 @@ ggsave(filename = "../figures/ppcp_PI_plot.png", plot = ppcp_PI_plot,
 # 4. Nutrient analysis ----------------------------------------------------
 
 # Join PPCP data with metadata/distance and create custom metric
-nutrients_meta_dist <- full_join(x = nutrients, y = metadata_dist, by = "Site")
+nutrients_meta_dist <- full_join(x = nutrients, y = metadata_dist, by = "site")
 
 
 # 4.1 Phosphorus ----------------------------------------------------------
 
 # Analyze phosphorus as a function of population intensity
-phosphorus_PI_model <- lm(log10(mean_TP_mg_dm3) ~ log10(distance_weighted_population),
+phosphorus_PI_model <- lm(log10(mean_tp_mg_dm3) ~ log10(distance_weighted_population),
                           data = nutrients_meta_dist)
 
 # View model results
@@ -94,7 +94,7 @@ summary(phosphorus_PI_model)
 # Plot linear model
 phosphorus_PI_plot <- ggplot(data = nutrients_meta_dist,
                              aes(x = log10(distance_weighted_population),
-                                 y = log10(mean_TP_mg_dm3))) +
+                                 y = log10(mean_tp_mg_dm3))) +
   geom_point() +
   geom_smooth(method = "lm", se = TRUE) +
   ylab("log10([Total Phosphorus])") +
@@ -115,7 +115,7 @@ ggsave("phosphorus_PI_plot.png", phosphorus_PI_plot, device = "png",
 # 4.2 Nitrate -------------------------------------------------------------
 
 # Analyze nitrate as a function of population intensity
-nitrate_PI_model <- lm(log10(mean_NO3_mg_dm3) ~ log10(distance_weighted_population),
+nitrate_PI_model <- lm(log10(mean_no3_mg_dm3) ~ log10(distance_weighted_population),
                        data = nutrients_meta_dist)
 
 # View model results
@@ -124,7 +124,7 @@ summary(nitrate_PI_model)
 # Plot linear model
 nitrate_PI_plot <- ggplot(data = nutrients_meta_dist,
                           aes(x = log10(distance_weighted_population),
-                              y = log10(mean_NO3_mg_dm3))) +
+                              y = log10(mean_no3_mg_dm3))) +
   geom_point() +
   geom_smooth(method = "lm", se = TRUE) +
   ylab("log10([Total Nitrate])") +
@@ -145,7 +145,7 @@ ggsave("nitrate_PI_plot.png", nitrate_PI_plot, device = "png",
 # 4.3 Ammonium ------------------------------------------------------------
 
 # Analyze ammonium as a function of population intensity
-ammonium_PI_model <- lm(log10(mean_NH4_mg_dm3) ~ log10(distance_weighted_population),
+ammonium_PI_model <- lm(log10(mean_nh4_mg_dm3) ~ log10(distance_weighted_population),
                         data = nutrients_meta_dist)
 
 # View model results
@@ -154,7 +154,7 @@ summary(ammonium_PI_model)
 # Plot linear model
 ammonium_PI_plot <- ggplot(nutrients_meta_dist,
                            aes(x = log10(distance_weighted_population),
-                               y = log10(mean_NH4_mg_dm3))) +
+                               y = log10(mean_nh4_mg_dm3))) +
   geom_point() +
   geom_smooth(method = "lm", se = TRUE) +
   ylab("log10([Total Ammonium])") +
@@ -176,19 +176,19 @@ ggsave(filename = "../figures/ammonium_PI_plot.png", plot = ammonium_PI_plot,
 
 # Join stable isotope data with metadata/distance and create custom metric
 stable_isotopes_meta_dist <- full_join(x = stable_isotopes, y = metadata_dist,
-                                       by = "Site")
+                                       by = "site")
 
 # 5.1 N15 -----------------------------------------------------------------
 
 # Analyze N15 as a function of population intensity
 n15_PI_model <- lm(log10(N15) ~ log10(distance_weighted_population),
-                   data = stable_isotopes_meta_dist[stable_isotopes$Genus != "Sp.", ])
+                   data = stable_isotopes_meta_dist[stable_isotopes$Genus != "Periphyton", ])
 
 # View model results
 summary(n15_PI_model)
 
 # Plot linear model
-n15_PI_plot <- ggplot(data = stable_isotopes_meta_dist[stable_isotopes$Genus != "Sp.", ],
+n15_PI_plot <- ggplot(data = stable_isotopes_meta_dist[stable_isotopes$Genus != "Periphyton", ],
                       aes(x = log10(distance_weighted_population), y = log10(N15))) +
   geom_point() +
   geom_smooth(method = "lm", se = TRUE) +
@@ -212,13 +212,13 @@ ggsave(filename = "../figures/n15_PI_plot.png", plot = n15_PI_plot,
 
 # Analyze C13 as a function of population intensity
 c13_PI_model <- lm((C13) ~ log10(distance_weighted_population),
-                   data = stable_isotopes_meta_dist[stable_isotopes$Genus != "Sp.", ])
+                   data = stable_isotopes_meta_dist[stable_isotopes$Genus != "Periphyton", ])
 
 # View model results
 summary(c13_PI_model)
 
 # Plot linear model
-c13_PI_plot <- ggplot(stable_isotopes_meta_dist[stable_isotopes$Genus != "Sp.", ],
+c13_PI_plot <- ggplot(stable_isotopes_meta_dist[stable_isotopes$Genus != "Periphyton", ],
                       aes(x = log10(distance_weighted_population), y = (C13))) +
   geom_point() +
   geom_smooth(method = "lm", se = TRUE) +
@@ -242,7 +242,7 @@ ggsave(filename = "../figures/c13_PI_plot.png", plot = c13_PI_plot,
 
 # Join Chl a data with metadata/distance and create custom metric
 chlorophylla_meta_dist <- full_join(x = chlorophylla, y = metadata_dist,
-                                    by = "Site")
+                                    by = "site")
 
 # Analyze chl a as a function of population intensity
 chlorophylla_PI_model <- lm((mean_chlorophylla) ~ log10(distance_weighted_population),
@@ -278,7 +278,7 @@ ggsave(filename = "../figures/chlorophylla_PI_plot.png",
 # Format microplastics data before join
 
 microplastics <- microplastics %>%
-  group_by(Site) %>%
+  group_by(site) %>%
   summarize(mean_total = mean(x = total_microplastics, na.rm = TRUE),
             mean_density = mean(x = density, na.rm = TRUE),
             mean_fragment_density = mean(x = fragment_density, na.rm = TRUE),
@@ -287,7 +287,7 @@ microplastics <- microplastics %>%
 
 # Join microplastics data with metadata/distance and create custom metric
 microplastics_meta_dist <- full_join(x = microplastics, y = metadata_dist,
-                                     by = "Site")
+                                     by = "site")
 
 
 # 7.1 Mean total microplastics --------------------------------------------
@@ -341,7 +341,7 @@ microplastics_density_PI_plot <- ggplot(data = microplastics_meta_dist,
   ylab("Mean Microplastic Density") +
   xlab("log10(IDW Population)") +
   ggtitle("Microplastics Density vs. IDW Population") +
-  annotate(geom = "label", x = 3.00, y = 3.65,
+  annotate(geom = "label", x = 3.65, y = 0.004,
            label = paste0("p-value: ",
                           round(summary(microplastics_density_PI_model)$coefficients[2, 4], 3),
                           "\nR-squared: ",
