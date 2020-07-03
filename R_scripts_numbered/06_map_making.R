@@ -13,14 +13,14 @@ library(viridis)
 # Step 1: Import data and join datasets -----------------------------------
 
 metadata <- read.csv(file = "../cleaned_data/metadata.csv",
-                          stringsAsFactors = F)
+                          stringsAsFactors = FALSE)
 
 distance <- read.csv(file = "../cleaned_data/distance_weighted_population_metrics.csv",
                      header = TRUE, stringsAsFactors = FALSE)
 
 sample_points <- full_join(x = metadata,
                            y = distance,
-                           by = c("Site"))
+                           by = c("site"))
 
 # Make the locs Mercator
 sample_points_merc <- projectMercator(lat = sample_points$lat,
