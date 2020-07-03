@@ -198,5 +198,5 @@ distance_orig <- read.csv(file = "../clean_disaggregated_data/distance_weighted_
 
 head(distance_orig)
 
-write.csv(x = distance_orig, file = "../cleaned_data/distance.csv",
+write.csv(x = distance_orig, file = "../cleaned_data/distance_weighted_population_metrics.csv",
           row.names = FALSE)

@@ -6,10 +6,8 @@
 
 # 1. Load packages --------------------------------------------------------
 
-library(dplyr)
-library(tidyr)
+library(tidyverse)
 library(ggplot2)
-library(viridis)
 library(viridisLite)
 library(vegan)
 library(factoextra)
@@ -39,15 +37,15 @@ distance <- read.csv("../cleaned_data/distance_weighted_population_metrics.csv",
                      header = TRUE, stringsAsFactors = FALSE)
 
 # Join site metadata with distance data
-metadata_dist <- full_join(x = metadata, y = distance, by = "Site")
+metadata_dist <- full_join(x = metadata, y = distance, by = "site")
 
 # PPCP data
 ppcp <- read.csv("../cleaned_data/ppcp.csv",
                  header = TRUE, stringsAsFactors = FALSE)
 
 # Join PPCP data with metadata/distance and select sites of interest
-ppcp_meta_dist <- full_join(x = ppcp, y = metadata_dist, by = "Site") %>%
-  filter(!(Site %in% c("OS-1", "OS-2", "OS-3")))
+ppcp_meta_dist <- full_join(x = ppcp, y = metadata_dist, by = "site") %>%
+  filter(!(site %in% c("OS-1", "OS-2", "OS-3")))
 
 
 # Define low/moderate/high sites
@@ -65,20 +63,20 @@ high <- c("BK-1", "EM-1", "LI-3", "LI-2", "LI-1")
 
 # Join periphyton data with metadata/distance and create custom metric
 periphyton_meta_dist <- full_join(x = periphyton, y = ppcp_meta_dist,
-                                  by = "Site")
+                                  by = "site")
 
 
 # 3.1 Univariate analysis -------------------------------------------------
 
 # Convert periphyton data to long format and add total count
 periphyton_meta_dist_long <- periphyton_meta_dist %>%
-  gather(key = Taxon, value = Count, desmidales:ulothrix) %>%
-  filter(!(Taxon %in% c("desmidales", "pediastrum"))) %>%
-  group_by(Site) %>%
-  mutate(Total_count = sum(Count))
+  gather(key = taxon, value = count, desmidales:ulothrix) %>%
+  filter(!(taxon %in% c("desmidales", "pediastrum"))) %>%
+  group_by(site) %>%
+  mutate(total_count = sum(count))
 
 # Rework Site column as a factor
-periphyton_meta_dist_long$Site <- factor(x = periphyton_meta_dist_long$Site,
+periphyton_meta_dist_long$Site <- factor(x = periphyton_meta_dist_long$site,
                                          levels = c("BGO-2",  "BGO-3", "KD-1",
                                                     "KD-2", "BGO-1", "MS-1",
                                                     "BK-3", "BK-2", "SM-1",
@@ -86,18 +84,18 @@ periphyton_meta_dist_long$Site <- factor(x = periphyton_meta_dist_long$Site,
                                                     "LI-2", "LI-3"))
 
 # Remove data with Site = NA
-periphyton_long_clean <- periphyton_meta_dist_long %>% filter(!is.na(Site))
+periphyton_long_clean <- periphyton_meta_dist_long %>% filter(!is.na(site))
 
 # Plot periphyton counts as a function of site and taxa
 periphyton_meta_dist_plot <- ggplot(data = periphyton_long_clean) +
-  geom_bar(aes(x = Site, y = Total_count), fill = "grey80", stat = "identity") +
-  geom_bar(aes(x = Site, y = Count, fill = Taxon), stat = "identity") +
-  scale_fill_viridis(discrete = TRUE, option = "inferno") +
-  facet_wrap(~ Taxon) +
+  geom_bar(aes(x = site, y = total_count), fill = "grey80", stat = "identity") +
+  geom_bar(aes(x = site, y = count, fill = taxon), stat = "identity") +
+  scale_fill_viridis_d(option = "inferno") +
+  facet_wrap(~ taxon) +
   scale_x_discrete(expand = c(0, 0)) +
   scale_y_continuous(expand = c(0, 0)) +
   ylab("Number of cells") +
-  xlab("Site (Arranged by increasing distance-weighted population)") +
+  xlab("Site (Arranged by increasing inverse distance-weighted population)") +
   theme_classic() +
   theme(legend.position = "none",
         axis.text.x = element_text(angle = 45, hjust = 1)) +
@@ -124,12 +122,12 @@ ggsave(filename = "periphyton_univariate.png", plot = periphyton_meta_dist_plot,
 
 # Clean dataset and add IDW_pop_group
 periphyton_meta_dist_wide <- periphyton_meta_dist %>%
-  filter(!(Site %in% c("OS-1", "OS-2", "OS-3"))) %>%
-  mutate(IDW_pop_group = ifelse(test = Site %in% high,
+  filter(!(site %in% c("OS-1", "OS-2", "OS-3"))) %>%
+  mutate(IDW_pop_group = ifelse(test = site %in% high,
                                 yes = "High", no = "NULL"),
-         IDW_pop_group = ifelse(test = (Site %in% mod),
+         IDW_pop_group = ifelse(test = (site %in% mod),
                                 yes = "Mod", no = IDW_pop_group),
-         IDW_pop_group = ifelse(test = (Site %in% low),
+         IDW_pop_group = ifelse(test = (site %in% low),
                                 yes = "Low", no = IDW_pop_group)) %>%
   as.data.frame()
 
@@ -143,16 +141,16 @@ periphyton_nmds
 
 # Pull scores from NMDS and add site data
 data_scores <- as.data.frame(scores(x = periphyton_nmds))
-data_scores$Site <- periphyton_meta_dist_wide %>%
-  pull(Site)
+data_scores$site <- periphyton_meta_dist_wide %>%
+  pull(site)
 
 # Join scores with PPCP data and code into PI groups
-data_scores <- inner_join(x = data_scores, y = ppcp_meta_dist, by = "Site") %>%
-  mutate(IDW_pop_group = ifelse(test = Site %in% high,
+data_scores <- inner_join(x = data_scores, y = ppcp_meta_dist, by = "site") %>%
+  mutate(IDW_pop_group = ifelse(test = site %in% high,
                                 yes = "High", no = "NULL"),
-         IDW_pop_group = ifelse(test = Site %in% mod,
+         IDW_pop_group = ifelse(test = site %in% mod,
                                 yes = "Mod", no = IDW_pop_group),
-         IDW_pop_group = ifelse(test = Site %in% low,
+         IDW_pop_group = ifelse(test = site %in% low,
                                 yes = "Low", no = IDW_pop_group))
 
 # Rework IDW_pop_group column as a factor
@@ -217,7 +215,7 @@ summary(simper_results)
 
 # Convert invertebrate data to long format and add total count
 invertebrate_meta_dist <- full_join(x = invertebrates, y = ppcp_meta_dist,
-                                    by = "Site")
+                                    by = "site")
 
 # Define amphipod genera
 amphipods <- c("Eulimnogammarus", "Poekilogammarus", "Pallasea", "Hyallela",
@@ -228,32 +226,32 @@ molluscs <- c("Acroloxidae", "Baicaliidae",  "Benedictidate", "Planorbidae",
 
 # Make invertebrate data long format, sum counts, and group genera
 invertebrates_long <- invertebrate_meta_dist %>%
-  select(Site:Valvatidae) %>%
-  gather(key = Taxon, value = Count, Acroloxidae:Valvatidae) %>%
-  filter(!grepl("juvenile", Taxon)) %>%
-  separate(col = Taxon, into = c("Genus", "Species")) %>%
-  group_by(Site, Genus) %>%
-  summarize(Total_Genus = sum(Count)) %>%
+  select(site:Valvatidae) %>%
+  gather(key = taxon, value = count, Acroloxidae:Valvatidae) %>%
+  filter(!grepl("juvenile", taxon, ignore.case = TRUE)) %>%
+  separate(col = taxon, into = c("Genus", "Species", "Subspecies"), sep = "_") %>%
+  group_by(site, Genus) %>%
+  summarize(total_Genus = sum(count)) %>%
   ungroup() %>%
-  group_by(Site) %>%
-  mutate(Total_Site = sum(Total_Genus)) %>%
+  group_by(site) %>%
+  mutate(total_site = sum(total_Genus)) %>%
   unique() %>%
-  mutate(GROUPING = ifelse(test = Genus %in% amphipods,
+  mutate(grouping = ifelse(test = Genus %in% amphipods,
                            yes = "Amphipod", no = NA),
-         GROUPING = ifelse(test = Genus %in% molluscs,
-                           yes = "Mollusc", no = GROUPING),
-         GROUPING = ifelse(test = Genus == "Asellidae",
-                           yes = "Isopod", no = GROUPING),
-         GROUPING = ifelse(test = Genus == "caddisflies",
-                           yes = "Caddisflies", no = GROUPING),
-         GROUPING = ifelse(test = Genus == "flatworms",
-                           yes = "Planaria", no = GROUPING),
-         GROUPING = ifelse(test = Genus == "Leeches",
-                           yes = "Hirudinea", no = GROUPING)) %>%
-  filter(!is.na(GROUPING))
+         grouping = ifelse(test = Genus %in% molluscs,
+                           yes = "Mollusc", no = grouping),
+         grouping = ifelse(test = Genus == "Asellidae",
+                           yes = "Isopod", no = grouping),
+         grouping = ifelse(test = Genus == "caddisflies",
+                           yes = "Caddisflies", no = grouping),
+         grouping = ifelse(test = Genus == "flatworms",
+                           yes = "Planaria", no = grouping),
+         grouping = ifelse(test = Genus == "Leeches",
+                           yes = "Hirudinea", no = grouping)) %>%
+  filter(!is.na(grouping))
 
 # Rework Site column as a factor
-invertebrates_long$Site <- factor(x = invertebrates_long$Site,
+invertebrates_long$site <- factor(x = invertebrates_long$site,
                                   levels = c("BGO-2",  "BGO-3", "KD-1",
                                              "KD-2", "BGO-1", "MS-1",
                                              "BK-3", "BK-2", "SM-1",
@@ -262,10 +260,10 @@ invertebrates_long$Site <- factor(x = invertebrates_long$Site,
 
 # Plot invert counts by site and genus
 ggplot(invertebrates_long) +
-  geom_bar(aes(x = Site, y = Total_Site), alpha = 0.5, stat = "identity") +
-  geom_bar(aes(x = Site, y = Total_Genus, fill = Genus), stat = "identity") +
+  geom_bar(aes(x = site, y = total_site), alpha = 0.5, stat = "identity") +
+  geom_bar(aes(x = site, y = total_Genus, fill = Genus), stat = "identity") +
   facet_wrap(~ Genus) +
-  xlab("Locations (left-to-right reads South to North)") +
+  xlab("Site (Arranged by increasing inverse distance-weighted population)") +
   ylab("Number of Individuals") +
   theme_classic() +
   theme(legend.position = "bottom",
@@ -282,46 +280,41 @@ ggplot(invertebrates_long) +
 
 # Create a cleaned up wide format invertebrate genus dataset
 invertebrates_condensed_wide <- invertebrate_meta_dist %>%
-  select(Site:Valvatidae) %>%
-  gather(key = Taxon, value = Count, Acroloxidae:Valvatidae) %>%
-  filter(!grepl("juvenile", Taxon)) %>%
-  separate(col = Taxon, into = c("Genus", "Species")) %>%
-  group_by(Site, Genus) %>%
-  summarize(Total_Genus = sum(Count)) %>%
+  select(site:Valvatidae) %>%
+  gather(key = taxon, value = count, Acroloxidae:Valvatidae) %>%
+  filter(!grepl("juvenile", taxon, ignore.case = TRUE)) %>%
+  separate(col = taxon, into = c("Genus", "Species", "Subspecies")) %>%
+  group_by(site, Genus) %>%
+  summarize(total_Genus = sum(count)) %>%
   ungroup() %>%
-  group_by(Site) %>%
-  mutate(Total_Site = sum(Total_Genus)) %>%
+  group_by(site) %>%
+  mutate(total_site = sum(total_Genus)) %>%
   unique() %>%
-  spread(key = Genus, value = Total_Genus)
+  spread(key = Genus, value = total_Genus)
 
 # Check
 head(invertebrates_condensed_wide)
 
 # Check for correlations
-pairs(invertebrates_condensed_wide[, 3:18], upper.panel = panel.cor)
+pairs(invertebrates_condensed_wide[, 3:17], upper.panel = panel.cor)
 
-# Choronomids and Hyallela were not preserved well, and therefore were not well
-# identified in the dataset. This step removes them from further analysis.
-
-poorly_preserved <- c("Choronomids", "Hyallela")
 
 # Remove poorly preserved genera from dataset
 invertebrates_well_preserved_long <- invertebrate_meta_dist %>%
-  select(Site:Valvatidae) %>%
-  gather(key = Taxon, value = Count, Acroloxidae:Valvatidae) %>%
-  filter(!grepl("juvenile", Taxon)) %>%
-  separate(col = Taxon, into = c("Genus", "Species")) %>%
-  filter(!(Genus %in% poorly_preserved)) %>%
-  group_by(Site, Genus) %>%
-  summarize(Total_Genus = sum(Count)) %>%
+  select(site:Valvatidae) %>%
+  gather(key = taxon, value = count, Acroloxidae:Valvatidae) %>%
+  filter(!grepl("juvenile", taxon, ignore.case = TRUE)) %>%
+  separate(col = taxon, into = c("Genus", "Species", "Subspecies")) %>%
+  group_by(site, Genus) %>%
+  summarize(total_Genus = sum(count)) %>%
   ungroup() %>%
-  group_by(Site) %>%
-  mutate(Total_Site = sum(Total_Genus)) %>%
+  group_by(site) %>%
+  mutate(total_site = sum(total_Genus)) %>%
   unique() %>%
   ungroup()
 
 # Rework Genus and Site columns as factors
-invertebrates_well_preserved_long_2 <- invertebrates_well_preserved_long %>%
+invertebrates_well_preserved_long_ordered <- invertebrates_well_preserved_long %>%
   mutate(Genus = factor(x = Genus,
                         levels = c("Brandtia", "Cryptoropus", "Eulimnogammarus",
                                    "Pallasea", "Poekilogammarus",
@@ -329,7 +322,7 @@ invertebrates_well_preserved_long_2 <- invertebrates_well_preserved_long %>%
                                    "Maackia", "Planorbidae", "Valvatidae",
                                    "Asellidae", "Caddisflies", "Flatworms",
                                    "Leeches")),
-         Site = factor(x = Site,
+         site = factor(x = site,
                        levels = c("BGO-2",  "BGO-3", "KD-1",
                                   "KD-2", "BGO-1", "MS-1",
                                   "BK-3", "BK-2", "SM-1",
@@ -337,7 +330,7 @@ invertebrates_well_preserved_long_2 <- invertebrates_well_preserved_long %>%
                                   "LI-2", "LI-3")))
 
 # Prep invert data for plotting and then do so
-invertebrate_well_preserved_plot <- invertebrates_well_preserved_long %>%
+invertebrate_well_preserved_plot <- invertebrates_well_preserved_long_ordered %>%
   mutate(Group = ifelse(test = Genus %in% amphipods,
                         yes = "Amphipod", no = Genus),
          Group = ifelse(test = Genus %in% molluscs,
@@ -350,10 +343,10 @@ invertebrate_well_preserved_plot <- invertebrates_well_preserved_long %>%
                                    "Asellidae", "Caddisflies", "Flatworms",
                                    "Leeches"))) %>%
   ggplot() +
-  geom_bar(aes(x = Site, y = Total_Site), alpha = 0.5, stat = "identity") +
-  geom_bar(aes(x = Site, y = Total_Genus, fill = as.factor(Group)),
+  geom_bar(aes(x = site, y = total_site), alpha = 0.5, stat = "identity") +
+  geom_bar(aes(x = site, y = total_Genus, fill = as.factor(Group)),
            stat = "identity") +
-  scale_fill_viridis(discrete = TRUE, option = "inferno") +
+  scale_fill_viridis_d(option = "inferno") +
   facet_wrap(~ Genus) +
   xlab("Site (Arranged by increasing population intensity)") +
   ylab("Number of Individuals") +
@@ -383,23 +376,22 @@ ggsave(filename = "../figures/invertebrate_well_preserved_plot.png",
 # genera. In this step we also remove rare species (i.e., taxa representing less
 # than 1% of the intercommunity abundance).
 invertebrates_well_preserved_wide <- invertebrate_meta_dist %>%
-  select(Site:Valvatidae) %>%
-  gather(key = Taxon, value = Count, Acroloxidae:Valvatidae) %>%
-  filter(!grepl("juvenile", Taxon)) %>%
-  separate(col = Taxon, into = c("Genus", "Species")) %>%
-  filter(!(Genus %in% poorly_preserved)) %>%
-  group_by(Site, Genus) %>%
-  summarize(Total_Genus = sum(Count)) %>%
+  select(site:Valvatidae) %>%
+  gather(key = taxon, value = count, Acroloxidae:Valvatidae) %>%
+  filter(!grepl("juvenile", taxon)) %>%
+  separate(col = taxon, into = c("Genus", "Species", "Subspecies")) %>%
+  group_by(site, Genus) %>%
+  summarize(total_Genus = sum(count)) %>%
   ungroup() %>%
-  group_by(Site) %>%
-  mutate(Total_Site = sum(Total_Genus),
-         prop_genus = Total_Genus / Total_Site) %>%
+  group_by(site) %>%
+  mutate(total_site = sum(total_Genus),
+         prop_Genus = total_Genus / total_site) %>%
   ungroup() %>%
   group_by(Genus) %>%
-  mutate(mean_prop = mean(prop_genus, na.rm = TRUE)) %>%
+  mutate(mean_prop = mean(prop_Genus, na.rm = TRUE)) %>%
   filter(mean_prop >= 0.01) %>%
-  select(-mean_prop, -prop_genus) %>%
-  spread(key = Genus, value = Total_Genus)
+  select(-mean_prop, -prop_Genus) %>%
+  spread(key = Genus, value = total_Genus)
 
 # Square-root transform
 inver_comm <- sqrt(invertebrates_well_preserved_wide[, 3:12])
@@ -420,13 +412,13 @@ invertebrates_metaMDS
 
 # Pull scores from NMDS and add site data
 data_scores <- as.data.frame(scores(x = invertebrates_metaMDS))
-data_scores$Site <- invertebrates_well_preserved_wide$Site
+data_scores$site <- invertebrates_well_preserved_wide$site
 
 # Join scores with PPCP data and code into IDW_pop_group
-data_scores <- full_join(x = data_scores, y = ppcp_meta_dist, by = "Site") %>%
-  mutate(IDW_pop_group = ifelse(test = Site %in% c(low, mod),
+data_scores <- full_join(x = data_scores, y = ppcp_meta_dist, by = "site") %>%
+  mutate(IDW_pop_group = ifelse(test = site %in% c(low, mod),
                                 yes = "Low/Mod", no = NA),
-         IDW_pop_group = ifelse(test = Site %in% high,
+         IDW_pop_group = ifelse(test = site %in% high,
                                 yes = "High", no = IDW_pop_group),
          IDW_pop_group = factor(x = IDW_pop_group,
                                 levels = c("High", "Low/Mod")))
@@ -466,10 +458,10 @@ ggsave(filename = "../figures/inverts_well_preserved_nmds.png",
 # Re-join the metadata and distance data back in with invert data
 inverts_well_preserved_meta_dist_wide <- full_join(x = invertebrates_well_preserved_wide,
                                                    y = ppcp_meta_dist,
-                                                   by = "Site") %>%
-  mutate(IDW_pop_group = ifelse(test = Site %in% c(low, mod),
+                                                   by = "site") %>%
+  mutate(IDW_pop_group = ifelse(test = site %in% c(low, mod),
                                 yes = "Low/Mod", no = NA),
-         IDW_pop_group = ifelse(test = Site %in% high,
+         IDW_pop_group = ifelse(test = site %in% high,
                                 yes = "High", no = IDW_pop_group),
          distance_weighted_population = log10(distance_weighted_population)) %>%
   data.frame()
