@@ -129,12 +129,12 @@ metadata <- metadata_orig %>%
          site = loc_site,
          site_description = site_desc,
          depth_m = depth,
-         distance_to_shore = dist_to_shore,
+         distance_to_shore_m = dist_to_shore,
          air_temp_celsius = air_temp,
          surface_temp_celsius = surface_temp,
          mid_temp_celsius = mid_temp,
          bottom_temp_celsius = bottom_temp) %>%
-  select(year, month, day, time, site, lat, long, site_description, distance_to_shore, 
+  select(year, month, day, time, site, lat, long, site_description, distance_to_shore_m, depth_m,
          air_temp_celsius, surface_temp_celsius, mid_temp_celsius, bottom_temp_celsius, 
          comments, shore_photo, substrate_photo, sponges, brandtia)
 
@@ -156,29 +156,24 @@ inverts_orig <- read.csv(file = "../original_data/macroinvert_community_QAQC_mfm
 # potentially erroneously include those counts, we remove this taxon. 
 # LI-3 was partitioned into two samples due to the high number of individuals. 
 # This step combines that replicate into one row. 
-inverts_summarized <- inverts_orig %>%
+inverts_wide <- inverts_orig %>%
   select(-X) %>%
-  gather(key = Site, value = Count, MS1.3:BK1.3) %>%
-  rename(Taxon = Invertebrate) %>%
-  mutate(Site = gsub(pattern = ".", replacement = "_", x = Site, fixed = TRUE),
-         Taxon = gsub(pattern = " ", replacement = "_", x = Taxon),
-         Count = ifelse(test = is.na(Count), yes = 0, no = Count)) %>%
-  separate(col = Site, into = c("Location", "Replicate", "Duplicate"),
+  gather(key = site, value = count, MS1.3:BK1.3) %>%
+  rename(taxon = Invertebrate) %>%
+  mutate(site = gsub(pattern = ".", replacement = "_", x = site, fixed = TRUE),
+         taxon = gsub(pattern = " ", replacement = "_", x = taxon),
+         count = ifelse(test = is.na(count), yes = 0, no = count)) %>%
+  separate(col = site, into = c("location", "replicate", "duplicate"),
            remove = FALSE) %>%
-  filter(!(Taxon %in% c("Propapaidae", "choronomids_", "hyallela_cziarnianski_"))) %>%
-  mutate(Taxon = ifelse(test = grepl(pattern = "Brandtia_latissima", x = Taxon), 
-                                     yes = "Brandtia_latissima", no = Taxon),
-         Replicate = ifelse(test = Replicate %in% c("1B1", "1B2"),
-                            yes = "1", no = Replicate)) %>%
-  group_by(Location, Replicate, Duplicate, Taxon) %>%
-  summarize(sum_Count = sum(Count)) %>%
-  ungroup()
-
-# Take mean counts by taxon, flesh out taxonomic info, spread to wide format
-inverts_wide <- inverts_summarized %>%
-  group_by(Location, Taxon, Replicate) %>%
-  summarize(mean_Count = mean(sum_Count)) %>%
-  separate(col = Taxon, into = c("Genus", "Species", "Subspecies")) %>%
+  filter(!(taxon %in% c("Propapaidae", "choronomids_", "hyallela_cziarnianski_"))) %>%
+  mutate(taxon = ifelse(test = grepl(pattern = "Brandtia_latissima", x = taxon), 
+                                     yes = "Brandtia_latissima", no = taxon),
+         replicate = ifelse(test = replicate %in% c("1B1", "1B2"),
+                            yes = "1", no = replicate)) %>%
+  group_by(location, replicate, taxon) %>%
+  summarize(sum_count = sum(count)) %>%
+  ungroup() %>%
+  separate(col = taxon, into = c("Genus", "Species", "Subspecies")) %>%
   mutate(Genus = ifelse(test = Genus == "E",
                         yes = "Eulimnogammarus", no = Genus),
          Genus = ifelse(test = Genus == "Eulimno",
@@ -199,16 +194,16 @@ inverts_wide <- inverts_summarized %>%
                         yes = "Valvatidae", no = Genus),
          Species = ifelse(test = Species == "spp",
                           yes = NA, no = Species)) %>%
-  unite(col = "Taxon", Genus, Species, Subspecies) %>%
-  mutate(Taxon = gsub(pattern = "_NA_NA", replacement = "", x = Taxon),
-         Taxon = gsub(pattern = "_NA", replacement = "", x = Taxon),
-         Taxon = ifelse(test = Taxon == "flatworms_",
-                        yes = "Flatworms", no = Taxon)) %>%
-  spread(key = Taxon, value = mean_Count) %>%
+  unite(col = "taxon", Genus, Species, Subspecies) %>%
+  mutate(taxon = gsub(pattern = "_NA_NA", replacement = "", x = taxon),
+         taxon = gsub(pattern = "_NA", replacement = "", x = taxon),
+         taxon = ifelse(test = taxon == "flatworms_",
+                        yes = "Flatworms", no = taxon)) %>%
+  spread(key = taxon, value = sum_count) %>%
   select(-Total) %>%
-  separate(col = Location, into = c("Location", "Number"), sep = -1) %>%
-  unite(col = "Site", Location, Number, sep = "-")
-
+  separate(col = location, into = c("place", "number"), sep = -1) %>%
+  unite(col = "site", place, number, sep = "-")
+  
 head(inverts_wide)
 
 write.csv(x = inverts_wide, file = "../clean_disaggregated_data/invertebrates.csv",
@@ -222,11 +217,11 @@ periphyton_orig <- read.csv(file = "../original_data/periphyton_20180917.csv",
 
 # Make long format, take mean counts by taxon
 periphyton_wide <- periphyton_orig %>%
-  rename("Site" = "site",
-         "Replicate" = "rep",
-         "subsamples_counted" = "counts") %>%
-  separate(col = Site, into = c("Location", "Number"), sep = -1) %>%
-  unite(col = "Site", Location, Number, sep = "-") %>%
+  rename("replicate" = "rep",
+         "subsamples_counted" = "counts",
+         "tetrasporales" = "tetraporales") %>%
+  separate(col = site, into = c("Location", "Number"), sep = -1) %>%
+  unite(col = "site", Location, Number, sep = "-") %>%
   select(-date) %>%
   clean_names()
 
@@ -245,7 +240,7 @@ stable_isotopes_orig <- read.csv(file = "../original_data/sia_results_mfm_201705
 # In this analysis, "Splash zone" was used as the shorthand 
 # for periphyton. We relabel "Splash zone" as periphyton as such. 
 stable_isotopes <- stable_isotopes_orig %>%
-  separate(col = Identifier, into = c("Site", "Genus", "Species"), sep = " ") %>%
+  separate(col = Identifier, into = c("site", "Genus", "Species"), sep = " ") %>%
   mutate(Genus = ifelse(test = Genus == "E.",
                         yes = "Eulimnogammarus", Genus),
          Genus = ifelse(test = Genus == "P.",
@@ -298,7 +293,7 @@ fatty_acid <- fatty_acid_orig %>%
                           yes = "cancellus", no = Species),
          Species = ifelse(test = Species == "zone",
                           yes = NA, no = Species)) %>%
-  rename(Site = location)
+  rename(site = location)
 
 head(fatty_acid)
 
@@ -314,7 +309,7 @@ total_lipid_orig <- read.csv(file = "../original_data/Baikal.total.lipid.mfm.201
 # Parse sample.id column into site and taxonomic data
 total_lipid <- total_lipid_orig %>%
   select(-sample.num) %>%
-  separate(col = sample.id, into = c("Site", "SPP"), sep = "\\,") %>%
+  separate(col = sample.id, into = c("site", "SPP"), sep = "\\,") %>%
   separate(col = SPP, into = c("Genus", "Species"), sep = "[.]") %>%
   mutate(Genus = ifelse(test = Genus == " E",
                         yes = "Eulimnogammarus", no = Genus),
@@ -370,7 +365,7 @@ microplastics_orig <- read.csv(file = "../original_data/microplastics_mfm_201710
 
 microplastics <- microplastics_orig %>%
   select(-date) %>%
-  unite(col = "Site", location, site, sep = "-") %>%
+  unite(col = "site", location, site, sep = "-") %>%
   mutate(volume_filtered_mL = volume * volume_rep) %>%
   select(-volume, -volume_rep)
 
@@ -404,15 +399,15 @@ loc_areas <- baikal_shapefile %>%
   mutate(development_area_m2 = as.numeric(development_area_m2),
          development_area_km2 = development_area_m2 / 1000000) %>%
   cbind(baikal_shapefile$Name) %>%
-  rename(Site = `baikal_shapefile$Name`) %>%
-  mutate(Site = as.character(Site),
-         Site = ifelse(test = Site == "Bolshoe Goloustnoe",
-                       yes = "BGO", no = Site),
-         Site = ifelse(test = Site == "Bolshie Koty",
-                       yes = "BK", no = Site),
-         Site = ifelse(test = Site == "Listvyanka",
-                       yes = "LI", no = Site)) %>%
-  filter(Site %in% c("BK", "LI", "BGO"))
+  rename(site = `baikal_shapefile$Name`) %>%
+  mutate(site = as.character(site),
+         site = ifelse(test = site == "Bolshoe Goloustnoe",
+                       yes = "BGO", no = site),
+         site = ifelse(test = site == "Bolshie Koty",
+                       yes = "BK", no = site),
+         site = ifelse(test = site == "Listvyanka",
+                       yes = "LI", no = site)) %>%
+  filter(site %in% c("BK", "LI", "BGO"))
 
 
 # Step 3: Extract Development names ---------------------------------------
@@ -432,13 +427,13 @@ loc_shoreline_area_length <- baikal_shapefile %>%
   mutate(development_shoreline_length_m = as.numeric(development_shoreline_length_m),
          development_shoreline_length_km = development_shoreline_length_m / 1000) %>%
   cbind(shoreline_names$Name) %>%
-  rename(Site = `shoreline_names$Name`) %>%
-  mutate(Site = as.character(Site),
-         Site = ifelse(grepl("Bolshoe Goloustnoe", Site), "BGO", Site),
-         Site = ifelse(grepl("Bolshie Koty", Site), "BK", Site),
-         Site = ifelse(grepl("Listvyanka", Site), "LI", Site)) %>%
-  filter(Site %in% c("BK", "LI", "BGO")) %>%
-  full_join(x = ., y = loc_areas, by = c("Site"))
+  rename(site = `shoreline_names$Name`) %>%
+  mutate(site = as.character(site),
+         site = ifelse(grepl("Bolshoe Goloustnoe", site), "BGO", site),
+         site = ifelse(grepl("Bolshie Koty", site), "BK", site),
+         site = ifelse(grepl("Listvyanka", site), "LI", site)) %>%
+  filter(site %in% c("BK", "LI", "BGO")) %>%
+  full_join(x = ., y = loc_areas, by = c("site"))
 
 
 # Step 5: Calculate centroids for each developed site ---------------------
@@ -449,7 +444,7 @@ baikal_shapefile$centroids <- st_centroid(x = baikal_shapefile)
 # Step 6: Convert metadata into a spatial object --------------------------
 
 site_loc <- metadata %>%
-  dplyr::select("Site" = site, lat, long)
+  dplyr::select(site, lat, long)
 
 site_loc_pts <- st_as_sf(site_loc[, 2:3], coords = c("long", "lat"),
                          crs = 4326)
@@ -468,7 +463,7 @@ locs_centroids <- st_distance(x = site_loc_pts,
          LI = as.numeric(LI)) %>%
   cbind(., site_loc) %>%
   gather(key = nearest_neighbor, value = distance, BGO:LI) %>%
-  group_by(Site, lat, long) %>%
+  group_by(site, lat, long) %>%
   mutate(distance_km = distance / 1000,
          population = ifelse(test = nearest_neighbor == "BGO",
                              yes = 600, no = NA),
@@ -477,10 +472,10 @@ locs_centroids <- st_distance(x = site_loc_pts,
          population = ifelse(test = nearest_neighbor == "LI",
                              yes = 5000, no = population)) %>%
   left_join(x = ., y = loc_shoreline_area_length,
-            by = c("nearest_neighbor" = "Site")) %>%
+            by = c("nearest_neighbor" = "site")) %>%
   mutate(distance_weighted_population = ((population * development_shoreline_length_km) /
                                            development_area_km2) / distance_km) %>%
-  group_by(Site) %>%
+  group_by(site) %>%
   summarize(distance_weighted_population = sum(distance_weighted_population)) %>%
   arrange(distance_weighted_population)
 

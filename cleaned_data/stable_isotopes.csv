@@ -1,4 +1,4 @@
-"C13","N15","Site","Genus","Species"
+"C13","N15","site","Genus","Species"
 -15.06,7.09,"MS-1","Eulimnogammarus","verrucosus"
 -11.7,7.53,"BGO-1","Pallasea","cancellus"
 -14.29,6.63,"BGO-1","Eulimnogammarus","verrucosus"
@@ -12,11 +12,11 @@
 -13.72,7.77,"SM-1","Eulimnogammarus","verrucosus"
 -13.9,6.42,"BGO-2","Eulimnogammarus","verrucosus"
 -13.59,6.79,"MS-1","Eulimnogammarus","vitatus"
--11.06,3.62,"BGO-1","Sp.","zone"
--14.53,2.14,"EM-1","Sp.","zone"
--20.21,0.77,"BGO-2","Sp.","zone"
--12.62,3.76,"BK-2","Sp.","zone"
--14.32,1.72,"SM-1","Sp.","zone"
+-11.06,3.62,"BGO-1","Periphyton",NA
+-14.53,2.14,"EM-1","Periphyton",NA
+-20.21,0.77,"BGO-2","Periphyton",NA
+-12.62,3.76,"BK-2","Periphyton",NA
+-14.32,1.72,"SM-1","Periphyton",NA
 -18.9,7.4,"MS-1","Eulimnogammarus","cyaneus"
 -16.54,7.92,"SM-1","Eulimnogammarus","cyaneus"
 -13.94,7.66,"EM-1","Eulimnogammarus","cyaneus"

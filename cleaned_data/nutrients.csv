@@ -1,4 +1,4 @@
-"Site","mean_NH4_mg_dm3","mean_NO3_mg_dm3","mean_TP_mg_dm3","mean_TPO43_mg_dm3"
+"site","mean_nh4_mg_dm3","mean_no3_mg_dm3","mean_tp_mg_dm3","mean_tpo43_mg_dm3"
 "BGO-1",0.0145,0.085,0.0145,0.044
 "BGO-2",0.001,0.08,0.0125,0.0385
 "BGO-3",0.001,0.09,0.0145,0.044

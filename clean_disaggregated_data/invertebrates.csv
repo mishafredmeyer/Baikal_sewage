@@ -1,12 +1,12 @@
-"Site","Replicate","Acroloxidae","Asellidae","Baicaliidae","Benedictidate","Brandtia_latissima","Brandtia_parasitica_parasitica","Caddisflies","Cryptoropus_inflatus","Cryptoropus_pachytus","Cryptoropus_rugosus","Eulimnogammarus_capreolus","Eulimnogammarus_cruentes","Eulimnogammarus_cyaneus","Eulimnogammarus_grandimanus","Eulimnogammarus_juveniles","Eulimnogammarus_maacki","Eulimnogammarus_marituji","Eulimnogammarus_verucossus","Eulimnogammarus_viridis_virids","Eulimnogammarus_vittatus","Flatworms","Leeches","Maackia","Pallasea_brandtia_brandita","Pallasea_brandtii_tenera","Pallasea_cancelloides","Pallasea_cancellus_","Pallasea_viridis","Planorbidae","Poekilogammarus_crassimus","Poekilogammarus_ephippiatus","Poekilogammarus_Juveniles","Poekilogammarus_megonychus_perpolitus","Poekilogammarus_pictus","Valvatidae"
+"site","replicate","Acroloxidae","Asellidae","Baicaliidae","Benedictidate","Brandtia_latissima","Brandtia_parasitica_parasitica","Caddisflies","Cryptoropus_inflatus","Cryptoropus_pachytus","Cryptoropus_rugosus","Eulimnogammarus_capreolus","Eulimnogammarus_cruentes","Eulimnogammarus_cyaneus","Eulimnogammarus_grandimanus","Eulimnogammarus_juveniles","Eulimnogammarus_maacki","Eulimnogammarus_marituji","Eulimnogammarus_verucossus","Eulimnogammarus_viridis_virids","Eulimnogammarus_vittatus","Flatworms","Leeches","Maackia","Pallasea_brandtia_brandita","Pallasea_brandtii_tenera","Pallasea_cancelloides","Pallasea_cancellus_","Pallasea_viridis","Planorbidae","Poekilogammarus_crassimus","Poekilogammarus_ephippiatus","Poekilogammarus_Juveniles","Poekilogammarus_megonychus_perpolitus","Poekilogammarus_pictus","Valvatidae"
 "BGO-1","1",0,7,20,29,0,0,4,3,3,33,3,0,23,1,104,9,2,14,5,25,0,16,0,0,0,8,0,0,22,26,2,324,2,0,14
-"BGO-1","2",0,0,8,4,0,0,2.5,4,0,8,0,0.5,2,0.5,39.5,2.5,0,2.5,3,9,1,0.5,0,0,0,1.5,0,0,8.5,11.5,0,78,0.5,0,0
+"BGO-1","2",0,0,16,8,0,0,5,8,0,16,0,1,4,1,79,5,0,5,6,18,2,1,0,0,0,3,0,0,17,23,0,156,1,0,0
 "BGO-1","3",0,0,5,6,1,0,1,1,2,12,0,3,9,0,60,4,0,0,15,13,1,6,0,0,0,6,2,0,11,21,0,137,0,0,0
 "BGO-2","1",0,20,7,3,11,0,62,10,0,10,0,9,4,0,164,7,0,3,7,4,0,10,0,0,0,9,0,0,21,48,10,342,8,0,90
-"BGO-2","2",0.5,4,6,4.5,10,0,54,12.5,0,9.5,0,0,2.5,4.5,63,11.5,0,19.5,6,20,0,4.5,0,0,0,1,5,0,17.5,56.5,7,134.5,2.5,0,6.5
+"BGO-2","2",1,8,12,9,20,0,108,25,0,19,0,0,5,9,126,23,0,39,12,40,0,9,0,0,0,2,10,0,35,113,14,269,5,0,13
 "BGO-2","3",1,3,4,1,12,0,46,6,0,8,0,0,0,19,87,15,0,5,1,5,0,3,0,0,0,1,0,0,23,44,7,280,5,0,4
-"BGO-3","1",0,0,0.5,0.5,0,0,0.5,1.5,0,0.5,0,0,1.5,0,3.5,0,0,4.5,0,0.5,0.5,1.5,0,0,0,0,0.5,0,2.5,6,39,51,1,0,1.5
-"BGO-3","2",0,0,0,0.5,0.5,0,0.5,3.5,0,1.5,0,0,0,0,1,0,0,2,0.5,0,0,4,0,0,0,6.5,0,0,1.5,31,30,62,20,0,0
+"BGO-3","1",0,0,1,1,0,0,1,3,0,1,0,0,3,0,7,0,0,9,0,1,1,3,0,0,0,0,1,0,5,12,78,102,2,0,3
+"BGO-3","2",0,0,0,1,1,0,1,7,0,3,0,0,0,0,2,0,0,4,1,0,0,8,0,0,0,13,0,0,3,62,60,124,40,0,0
 "BGO-3","3",0,0,0,0,0,0,5,4,1,2,1,0,4,0,25,1,0,18,0,2,1,10,0,0,0,4,1,0,3,78,58,128,2,0,2
 "BK-1","1",2,0,0,0,13,0,28,32,0,0,0,0,3,0,93,18,5,44,0,23,33,43,0,0,0,5,0,0,0,139,17,670,18,0,4
 "BK-1","2",2,0,0,0,6,0,3,30,0,0,0,0,0,0,50,17,0,7,13,24,3,2,0,0,0,9,0,0,0,71,25,225,5,14,2
