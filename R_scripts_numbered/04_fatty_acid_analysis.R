@@ -3,9 +3,7 @@
 # relating fatty acid community compositions with sewage
 # indicators in Lake Baikal.
 
-library(dplyr)
-library(tidyr)
-library(ggplot2)
+library(tidyverse)
 library(viridis)
 library(viridisLite)
 library(vegan)
@@ -30,11 +28,11 @@ metadata_dist <- full_join(x = metadata, y = distance)
 ppcp <- read.csv(file = "../cleaned_data/ppcp.csv",
                  header = TRUE, stringsAsFactors = FALSE)
 
-ppcp_meta_dist <- full_join(x = ppcp, y = metadata_dist, by = c("Site"))
+ppcp_meta_dist <- full_join(x = ppcp, y = metadata_dist, by = c("site"))
 
 fatty_acid_ppcp_meta_dist <- inner_join(x = fatty_acid, y = ppcp_meta_dist,
-                                        by = c("Site")) %>%
-  unite(Taxon, c("Genus", "Species"), remove = FALSE)
+                                        by = c("site")) %>%
+  unite(taxon, c("Genus", "Species"), remove = FALSE)
 
 
 # 2. Overall Fatty Acid Analysis ------------------------------------------
@@ -45,14 +43,14 @@ fatty_acid_ppcp_meta_dist <- inner_join(x = fatty_acid, y = ppcp_meta_dist,
 # Create a dataframe of the entire fatty acid spectrum
 fatty_acid_whole_wide <- fatty_acid %>%
   filter(Genus != "Hyalella") %>%
-  select(Site:C24.0) %>%
-  gather(key = Fatty_Acid, value = Concentration, C12.0:C24.0) %>%
-  group_by(Site, Genus, Species) %>%
-  mutate(Total_Fatty_Acid = sum(Concentration),
-         Prop_Fatty_Acid = Concentration / Total_Fatty_Acid) %>%
-  select(-Concentration, - Total_Fatty_Acid) %>%
-  spread(key = Fatty_Acid, value = Prop_Fatty_Acid) %>%
-  unite(Taxon, c("Genus", "Species"), sep = "_", remove = FALSE)
+  select(site:C24.0) %>%
+  gather(key = fatty_acid, value = concentration, C12.0:C24.0) %>%
+  group_by(site, Genus, Species) %>%
+  mutate(total_fatty_acid = sum(concentration),
+         prop_fatty_acid = concentration / total_fatty_acid) %>%
+  select(-concentration, - total_fatty_acid) %>%
+  spread(key = fatty_acid, value = prop_fatty_acid) %>%
+  unite(taxon, c("Genus", "Species"), sep = "_", remove = FALSE)
 
 # Identify mean, variance, and coefficient of variation across all
 # sites for each taxonomic grouping
@@ -70,17 +68,16 @@ whole_fatty_acid_metaMDS
 
 # Extract scores for each site and add additional data for analysis and plotting
 data_scores <- as.data.frame(scores(whole_fatty_acid_metaMDS)) %>%
-  mutate(Site = fatty_acid_whole_wide$Site,
-         Taxon = fatty_acid_whole_wide$Taxon,
-         Taxon = gsub(pattern = "_", replacement = " ", x = Taxon),
-         Taxon = gsub(pattern = "NA", replacement = "", x = Taxon),
-         Taxon = gsub(pattern = "Drapa", replacement = " Drapa spp.", x = Taxon),
-         Taxon = gsub(pattern = "Splash zone", replacement = "Periphyton", x = Taxon))
+  mutate(site = fatty_acid_whole_wide$site,
+         taxon = fatty_acid_whole_wide$taxon,
+         taxon = gsub(pattern = "_", replacement = " ", x = taxon),
+         taxon = gsub(pattern = "NA", replacement = "", x = taxon),
+         taxon = gsub(pattern = "Drapa", replacement = "Drapa spp.", x = taxon))
 
 # Create plot
 # This figure is associated with figure S1 in the associated manuscript
 nmds <- ggplot() +
-  geom_point(data = data_scores, aes(x = NMDS1, y = NMDS2, fill = Taxon),
+  geom_point(data = data_scores, aes(x = NMDS1, y = NMDS2, fill = taxon),
              size = 10, shape = 21, color = "grey60", alpha = .75, stroke = 2) +
   scale_fill_manual(values = inferno(69)[c(1, 13, 18, 20, 27, 33, 38, 45, 55)]) +
   ggtitle("NMDS with Entire FA Spectrum") +
@@ -104,15 +101,15 @@ ggsave(filename = "all_species_all_FA.png", plot = nmds, device = "png",
 # Create a dataframe of only the essential fatty acids
 fatty_acid_essential_wide <- fatty_acid %>%
   filter(Genus != "Hyalella") %>%
-  select(Site, Genus, Species, C18.3w3, C18.4w3, C20.5w3, C22.5w3, C22.6w3,
+  select(site, Genus, Species, C18.3w3, C18.4w3, C20.5w3, C22.5w3, C22.6w3,
          C18.2w6, C18.2w6t, C20.4w6) %>%
-  gather(key = Fatty_Acid, value = Concentration, C18.3w3:C20.4w6) %>%
-  group_by(Site, Genus, Species) %>%
-  mutate(Total_Fatty_Acid = sum(Concentration),
-         Prop_Fatty_Acid = Concentration / Total_Fatty_Acid) %>%
-  select(-Concentration, - Total_Fatty_Acid) %>%
-  spread(key = Fatty_Acid, value = Prop_Fatty_Acid) %>%
-  unite(col = Taxon, c("Genus", "Species"), sep = "_", remove = FALSE)
+  gather(key = fatty_acid, value = concentration, C18.3w3:C20.4w6) %>%
+  group_by(site, Genus, Species) %>%
+  mutate(total_fatty_acid = sum(concentration),
+         prop_fatty_acid = concentration / total_fatty_acid) %>%
+  select(-concentration, - total_fatty_acid) %>%
+  spread(key = fatty_acid, value = prop_fatty_acid) %>%
+  unite(col = taxon, c("Genus", "Species"), sep = "_", remove = FALSE)
 
 # Identify mean, variance, and coefficient of variation across all
 # sites for each taxonomic grouping
@@ -130,17 +127,16 @@ essential_fatty_acid_metaMDS
 
 # Aggregate data scores for plotting and analysis of the NMDS
 data_scores <- as.data.frame(scores(essential_fatty_acid_metaMDS)) %>%
-  mutate(Site = fatty_acid_essential_wide$Site,
-         Taxon = fatty_acid_essential_wide$Taxon,
-         Taxon = gsub(pattern = "_", replacement = " ", x = Taxon),
-         Taxon = gsub(pattern = "NA", replacement = "", x = Taxon),
-         Taxon = gsub(pattern = "Drapa", replacement = " Drapa spp.", x = Taxon),
-         Taxon = gsub(pattern = "Splash zone", replacement = "Periphyton", x = Taxon))
+  mutate(site = fatty_acid_essential_wide$site,
+         taxon = fatty_acid_essential_wide$taxon,
+         taxon = gsub(pattern = "_", replacement = " ", x = taxon),
+         taxon = gsub(pattern = "NA", replacement = "", x = taxon),
+         taxon = gsub(pattern = "Drapa", replacement = "Drapa spp.", x = taxon))
 
 # Plot NMDS for all species but only Essential Fatty Acids
 # This plot is figure S2 in the associated ms.
 nmds <- ggplot() +
-  geom_point(data = data_scores, aes(x = NMDS1, y = NMDS2, fill = Taxon),
+  geom_point(data = data_scores, aes(x = NMDS1, y = NMDS2, fill = taxon),
              size = 10, shape = 21, color = "grey60", alpha = .75, stroke = 2) +
   scale_fill_manual(values = inferno(69)[c(1, 13, 18, 20, 27, 33, 38, 45, 55)]) +
   ggtitle("NMDS with Essential FA Spectrum") +
@@ -164,28 +160,28 @@ ggsave(filename = "all_species_essential_FA.png", plot = nmds, device = "png",
 # 3. Correlating fatty acids with sewage ----------------------------------
 
 fatty_acid_prop_ppcp_meta_dist <- fatty_acid_ppcp_meta_dist %>%
-  select(Site, Genus, Species, Taxon, C18.3w3, C18.4w3, C20.5w3, C22.5w3, C22.6w3,
-         C18.2w6, C18.2w6t, C20.4w6, Caffeine:ppcp_sum, distance_weighted_population) %>%
-  gather(key = Fatty_acid, value = Concentration, C18.3w3:C20.4w6) %>%
-  group_by(Site, Genus, Species) %>%
-  mutate(Total_Fatty_Acid = sum(Concentration),
-         Prop_Fatty_Acid = Concentration / Total_Fatty_Acid) %>%
-  select(-Concentration, -Total_Fatty_Acid) %>%
-  spread(key = Fatty_acid, value = Prop_Fatty_Acid)
+  select(site, taxon, Genus, Species, C18.3w3, C18.4w3, C20.5w3, C22.5w3, C22.6w3,
+         C18.2w6, C18.2w6t, C20.4w6, caffeine:ppcp_sum, distance_weighted_population) %>%
+  gather(key = fatty_acid, value = concentration, C18.3w3:C20.4w6) %>%
+  group_by(site, Genus, Species) %>%
+  mutate(total_fatty_acid = sum(concentration),
+         prop_fatty_acid = concentration / total_fatty_acid) %>%
+  select(-concentration, -total_fatty_acid) %>%
+  spread(key = fatty_acid, value = prop_fatty_acid)
 
 # This figure is Figure 7 within the body of the associated manuscript.
 ppcp_fa_plot <- fatty_acid_prop_ppcp_meta_dist %>%
-  filter(Genus %in% c("Eulimnogammarus", "Splash"),
-         Species != "cyaneus") %>%
-  mutate(Taxon = ifelse(test = Taxon == "Eulimnogammarus_verrucosus",
-                        yes = "Eulimnogammarus verrucosus", no = Taxon),
-         Taxon = ifelse(test = Taxon == "Eulimnogammarus_vitatus",
-                        yes = "Eulimnogammarus vitatus", no = Taxon),
-         Taxon = ifelse(test = Taxon == "Splash_zone",
-                        yes = "Periphyton", no = Taxon)) %>%
+  filter(taxon %in% c("Eulimnogammarus_verrucosus", "Eulimnogammarus_vitatus",
+                      "Periphyton_NA")) %>%
+  mutate(taxon = ifelse(test = taxon == "Eulimnogammarus_verrucosus",
+                        yes = "Eulimnogammarus verrucosus", no = taxon),
+         taxon = ifelse(test = taxon == "Eulimnogammarus_vitatus",
+                        yes = "Eulimnogammarus vitatus", no = taxon),
+         taxon = ifelse(test = taxon == "Periphyton_NA",
+                        yes = "Periphyton", no = taxon)) %>%
 ggplot(aes(x = log10(ppcp_sum), y = ((C18.3w3 + C18.4w3) / (C20.5w3 + C22.5w3)))) +
   geom_point(size = 3) +
-  facet_wrap(~ Taxon) +
+  facet_wrap(~ taxon) +
   geom_smooth(method = "lm") +
   xlab(label = "log10([Total PPCP])") +
   ylab(label = expression(frac(18:3~omega~3 + 18:4~omega~3, 20:5~omega~3 + 22:6~omega~3))) +
@@ -202,12 +198,12 @@ ggsave(filename = "ppcp_fa_plot.png", plot = ppcp_fa_plot, device = "png",
 
 # First compare essential fatty acid ratios in periphyton with total PPCP concentration
 peri_ppcp_lm <- lm(formula = ((C18.3w3 + C18.4w3) / (C20.5w3 + C22.5w3)) ~ log10(ppcp_sum),
-               data = filter(fatty_acid_prop_ppcp_meta_dist, Genus == "Splash"))
+               data = filter(fatty_acid_prop_ppcp_meta_dist, Genus == "Periphyton"))
 
 summary(peri_ppcp_lm)
 
 # Second compare essential fatty acid ratios in invertebrates with total PPCP conentration
 invert_ppcp_lm <- lm(((C18.3w3 + C18.4w3) / (C20.5w3 + C22.5w3 + C22.6w3)) ~ log10(ppcp_sum),
-                   data = filter(fatty_acid_prop_ppcp_meta_dist, Genus != "Splash"))
+                   data = filter(fatty_acid_prop_ppcp_meta_dist, Genus != "Periphyton"))
 
 summary(invert_ppcp_lm)
