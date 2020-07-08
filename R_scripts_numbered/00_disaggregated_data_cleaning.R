@@ -49,7 +49,8 @@ ppcp <- ppcp_orig %>%
          collection_day = day(mdy(collection_date)),
          analysis_year = year(mdy(analysis_date)),
          analysis_month = month(mdy(analysis_date)),
-         analysis_day = day(mdy(analysis_date)))
+         analysis_day = day(mdy(analysis_date))) %>%
+  select(-collection_date, -analysis_date, -batch)
 
 # Take a look
 head(ppcp)
@@ -144,7 +145,7 @@ write.csv(x = metadata, file = "../clean_disaggregated_data/metadata.csv",
           row.names = FALSE)
 
 
-# 5. Load and clean macroinbertebrate data --------------------------------
+# 5. Load and clean macroinvertebrate data --------------------------------
 
 inverts_orig <- read.csv(file = "../original_data/macroinvert_community_QAQC_mfm_20171108.csv",
                          header = TRUE)
@@ -161,15 +162,18 @@ inverts_wide <- inverts_orig %>%
   gather(key = site, value = count, MS1.3:BK1.3) %>%
   rename(taxon = Invertebrate) %>%
   mutate(site = gsub(pattern = ".", replacement = "_", x = site, fixed = TRUE),
+         taxon = trimws(taxon),
          taxon = gsub(pattern = " ", replacement = "_", x = taxon),
          count = ifelse(test = is.na(count), yes = 0, no = count)) %>%
   separate(col = site, into = c("location", "replicate", "duplicate"),
            remove = FALSE) %>%
-  filter(!(taxon %in% c("Propapaidae", "choronomids_", "hyallela_cziarnianski_"))) %>%
-  mutate(taxon = ifelse(test = grepl(pattern = "Brandtia_latissima", x = taxon), 
-                                     yes = "Brandtia_latissima", no = taxon),
-         replicate = ifelse(test = replicate %in% c("1B1", "1B2"),
-                            yes = "1", no = replicate)) %>%
+  filter(!(taxon %in% c("Propapaidae", "choronomids", "hyallela_cziarnianski"))) %>%
+  mutate(replicate = ifelse(test = replicate %in% c("1B1", "1B2"),
+                            yes = "1", no = replicate),
+         taxon = ifelse(test = grepl(pattern = "Brandtia_latissima", x = taxon),
+                        yes = "Brandtia_latissima", no = taxon),
+         taxon = ifelse(test = grepl(pattern = "Benedictidate", x = taxon),
+                        yes = "Benedictidae", no = taxon)) %>%
   group_by(location, replicate, taxon) %>%
   summarize(sum_count = sum(count)) %>%
   ungroup() %>%
@@ -178,7 +182,7 @@ inverts_wide <- inverts_orig %>%
                         yes = "Eulimnogammarus", no = Genus),
          Genus = ifelse(test = Genus == "Eulimno",
                         yes = "Eulimnogammarus", no = Genus),
-         Genus = ifelse(test = Genus == "flatworms_",
+         Genus = ifelse(test = Genus == "flatworms",
                         yes = "Flatworms", no = Genus),
          Genus = ifelse(test = Genus == "caddisflies",
                         yes = "Caddisflies", no = Genus),
@@ -193,7 +197,13 @@ inverts_wide <- inverts_orig %>%
          Genus = ifelse(test = Genus == "valvatidae",
                         yes = "Valvatidae", no = Genus),
          Species = ifelse(test = Species == "spp",
-                          yes = NA, no = Species)) %>%
+                          yes = NA, no = Species),
+         Species = ifelse(test = Species == "Juveniles",
+                          yes = "juveniles", no = Species),
+         Species = ifelse(test = Species == "maacki",
+                          yes = "maackii", no = Species),
+         Subspecies = ifelse(test = Subspecies == "virids",
+                          yes = "viridis", no = Subspecies)) %>%
   unite(col = "taxon", Genus, Species, Subspecies) %>%
   mutate(taxon = gsub(pattern = "_NA_NA", replacement = "", x = taxon),
          taxon = gsub(pattern = "_NA", replacement = "", x = taxon),
@@ -273,7 +283,8 @@ fatty_acid_orig <- read.csv(file = "../original_data/BaikalFAs_wt_20180322.csv",
 
 # Parse spp column into taxonomic data
 fatty_acid <- fatty_acid_orig %>%
-  select(-GC_ID, -sample.) %>%
+  clean_names() %>%
+  select(-gc_id, -sample) %>%
   separate(col = spp, into = c("Genus", "Species")) %>%
   mutate(Genus = ifelse(test = Genus == "E" & Species == "ver",
                         yes = "Eulimnogammarus", no = Genus),
@@ -293,7 +304,8 @@ fatty_acid <- fatty_acid_orig %>%
                           yes = "cancellus", no = Species),
          Species = ifelse(test = Species == "zone",
                           yes = NA, no = Species)) %>%
-  rename(site = location)
+  rename(site = location) %>%
+  select(site:c24_0)
 
 head(fatty_acid)
 
@@ -366,7 +378,8 @@ microplastics_orig <- read.csv(file = "../original_data/microplastics_mfm_201710
 microplastics <- microplastics_orig %>%
   select(-date) %>%
   unite(col = "site", location, site, sep = "-") %>%
-  mutate(volume_filtered_mL = volume * volume_rep) %>%
+  mutate(volume_filtered_ml = volume * volume_rep) %>%
+  rename("replicate" = "rep") %>%
   select(-volume, -volume_rep)
 
 head(microplastics)

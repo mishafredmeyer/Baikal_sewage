@@ -218,10 +218,10 @@ invertebrate_meta_dist <- full_join(x = invertebrates, y = ppcp_meta_dist,
                                     by = "site")
 
 # Define amphipod genera
-amphipods <- c("Eulimnogammarus", "Poekilogammarus", "Pallasea", "Hyallela",
+amphipods <- c("Eulimnogammarus", "Poekilogammarus", "Pallasea",
                "Cryptoropus", "Brandtia")
 # Define mollusc genera
-molluscs <- c("Acroloxidae", "Baicaliidae",  "Benedictidate", "Planorbidae",
+molluscs <- c("Acroloxidae", "Baicaliidae",  "Benedictidae", "Planorbidae",
               "Valvatidae")
 
 # Make invertebrate data long format, sum counts, and group genera
@@ -318,7 +318,7 @@ invertebrates_well_preserved_long_ordered <- invertebrates_well_preserved_long %
   mutate(Genus = factor(x = Genus,
                         levels = c("Brandtia", "Cryptoropus", "Eulimnogammarus",
                                    "Pallasea", "Poekilogammarus",
-                                   "Acroloxidae", "Baicaliidae", "Benedictidate",
+                                   "Acroloxidae", "Baicaliidae", "Benedictidae",
                                    "Maackia", "Planorbidae", "Valvatidae",
                                    "Asellidae", "Caddisflies", "Flatworms",
                                    "Leeches")),
@@ -338,7 +338,7 @@ invertebrate_well_preserved_plot <- invertebrates_well_preserved_long_ordered %>
          Genus = factor(x = Genus,
                         levels = c("Brandtia", "Cryptoropus", "Eulimnogammarus",
                                    "Pallasea", "Poekilogammarus",
-                                   "Acroloxidae", "Baicaliidae", "Benedictidate",
+                                   "Acroloxidae", "Baicaliidae", "Benedictidae",
                                    "Maackia", "Planorbidae", "Valvatidae",
                                    "Asellidae", "Caddisflies", "Flatworms",
                                    "Leeches"))) %>%
@@ -394,7 +394,7 @@ invertebrates_well_preserved_wide <- invertebrate_meta_dist %>%
   spread(key = Genus, value = total_Genus)
 
 # Square-root transform
-inver_comm <- sqrt(invertebrates_well_preserved_wide[, 3:12])
+inver_comm <- sqrt(invertebrates_well_preserved_wide[, 3:14])
 
 # Vizualize optimum cluster number for invert community
 invert_cluster <- fviz_nbclust(x = inver_comm,
@@ -467,14 +467,14 @@ inverts_well_preserved_meta_dist_wide <- full_join(x = invertebrates_well_preser
   data.frame()
 
 # Run PERMANOVA
-adonis(formula = sqrt(inverts_well_preserved_meta_dist_wide[, 3:12]) ~
-         inverts_well_preserved_meta_dist_wide[, 27],
+adonis(formula = sqrt(inverts_well_preserved_meta_dist_wide[, 3:14]) ~
+         inverts_well_preserved_meta_dist_wide[, 29],
        data = inverts_well_preserved_meta_dist_wide,
        method = "bray")
 
 # Run SIMPER
-simper_results <- simper(comm = sqrt(inverts_well_preserved_meta_dist_wide[, 3:12]),
-                         group = inverts_well_preserved_meta_dist_wide[, 27],
+simper_results <- simper(comm = sqrt(inverts_well_preserved_meta_dist_wide[, 3:14]),
+                         group = inverts_well_preserved_meta_dist_wide[, 29],
                          permutations = 999)
 
 summary(simper_results)

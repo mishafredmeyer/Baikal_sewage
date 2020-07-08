@@ -43,8 +43,8 @@ fatty_acid_ppcp_meta_dist <- inner_join(x = fatty_acid, y = ppcp_meta_dist,
 # Create a dataframe of the entire fatty acid spectrum
 fatty_acid_whole_wide <- fatty_acid %>%
   filter(Genus != "Hyalella") %>%
-  select(site:C24.0) %>%
-  gather(key = fatty_acid, value = concentration, C12.0:C24.0) %>%
+  select(site:c24_0) %>%
+  gather(key = fatty_acid, value = concentration, c12_0:c24_0) %>%
   group_by(site, Genus, Species) %>%
   mutate(total_fatty_acid = sum(concentration),
          prop_fatty_acid = concentration / total_fatty_acid) %>%
@@ -101,9 +101,9 @@ ggsave(filename = "all_species_all_FA.png", plot = nmds, device = "png",
 # Create a dataframe of only the essential fatty acids
 fatty_acid_essential_wide <- fatty_acid %>%
   filter(Genus != "Hyalella") %>%
-  select(site, Genus, Species, C18.3w3, C18.4w3, C20.5w3, C22.5w3, C22.6w3,
-         C18.2w6, C18.2w6t, C20.4w6) %>%
-  gather(key = fatty_acid, value = concentration, C18.3w3:C20.4w6) %>%
+  select(site, Genus, Species, c18_3w3, c18_4w3, c20_5w3, c22_5w3, c22_6w3,
+         c18_2w6, c18_2w6t, c20_4w6) %>%
+  gather(key = fatty_acid, value = concentration, c18_3w3:c20_4w6) %>%
   group_by(site, Genus, Species) %>%
   mutate(total_fatty_acid = sum(concentration),
          prop_fatty_acid = concentration / total_fatty_acid) %>%
@@ -160,9 +160,9 @@ ggsave(filename = "all_species_essential_FA.png", plot = nmds, device = "png",
 # 3. Correlating fatty acids with sewage ----------------------------------
 
 fatty_acid_prop_ppcp_meta_dist <- fatty_acid_ppcp_meta_dist %>%
-  select(site, taxon, Genus, Species, C18.3w3, C18.4w3, C20.5w3, C22.5w3, C22.6w3,
-         C18.2w6, C18.2w6t, C20.4w6, caffeine:ppcp_sum, distance_weighted_population) %>%
-  gather(key = fatty_acid, value = concentration, C18.3w3:C20.4w6) %>%
+  select(site, taxon, Genus, Species, c18_3w3, c18_4w3, c20_5w3, c22_5w3, c22_6w3,
+         c18_2w6, c18_2w6t, c20_4w6, caffeine:ppcp_sum, distance_weighted_population) %>%
+  gather(key = fatty_acid, value = concentration, c18_3w3:c20_4w6) %>%
   group_by(site, Genus, Species) %>%
   mutate(total_fatty_acid = sum(concentration),
          prop_fatty_acid = concentration / total_fatty_acid) %>%
@@ -179,7 +179,7 @@ ppcp_fa_plot <- fatty_acid_prop_ppcp_meta_dist %>%
                         yes = "Eulimnogammarus vitatus", no = taxon),
          taxon = ifelse(test = taxon == "Periphyton_NA",
                         yes = "Periphyton", no = taxon)) %>%
-ggplot(aes(x = log10(ppcp_sum), y = ((C18.3w3 + C18.4w3) / (C20.5w3 + C22.5w3)))) +
+ggplot(aes(x = log10(ppcp_sum), y = ((c18_3w3 + c18_4w3) / (c20_5w3 + c22_5w3)))) +
   geom_point(size = 3) +
   facet_wrap(~ taxon) +
   geom_smooth(method = "lm") +
@@ -197,13 +197,13 @@ ggsave(filename = "ppcp_fa_plot.png", plot = ppcp_fa_plot, device = "png",
 # which should inrease with an increasing sewage signal.
 
 # First compare essential fatty acid ratios in periphyton with total PPCP concentration
-peri_ppcp_lm <- lm(formula = ((C18.3w3 + C18.4w3) / (C20.5w3 + C22.5w3)) ~ log10(ppcp_sum),
+peri_ppcp_lm <- lm(formula = ((c18_3w3 + c18_4w3) / (c20_5w3 + c22_6w3)) ~ log10(ppcp_sum),
                data = filter(fatty_acid_prop_ppcp_meta_dist, Genus == "Periphyton"))
 
 summary(peri_ppcp_lm)
 
 # Second compare essential fatty acid ratios in invertebrates with total PPCP conentration
-invert_ppcp_lm <- lm(((C18.3w3 + C18.4w3) / (C20.5w3 + C22.5w3 + C22.6w3)) ~ log10(ppcp_sum),
+invert_ppcp_lm <- lm(((c18_3w3 + c18_4w3) / (c20_5w3 +  c22_6w3)) ~ log10(ppcp_sum),
                    data = filter(fatty_acid_prop_ppcp_meta_dist, Genus != "Periphyton"))
 
 summary(invert_ppcp_lm)

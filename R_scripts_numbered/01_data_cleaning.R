@@ -81,7 +81,7 @@ write.csv(x = metadata, file = "../cleaned_data/metadata.csv",
           row.names = FALSE)
 
 
-# 5. Load and clean macroinbertebrate data --------------------------------
+# 5. Load and clean macroinvertebrate data --------------------------------
 
 inverts_orig <- read.csv(file = "../clean_disaggregated_data/invertebrates.csv",
                          header = TRUE)
@@ -152,13 +152,13 @@ microplastics_orig <- read.csv(file = "../clean_disaggregated_data/microplastics
 # Run microplastics post-processing calcs, then average by site
 microplastics_uncorrected <- microplastics_orig %>%
   select(-comments) %>%
-  filter(rep != "C")
+  filter(replicate != "C")
 
 # Separate out the controls so that they can be removed from
 # the experimental counts
 microplastics_controls <- microplastics_orig %>%
   select(-comments) %>%
-  filter(rep == "C") %>%
+  filter(replicate == "C") %>%
   group_by(site) %>%
   summarize(fiber_controls = mean(fibers),
             fragment_controls = mean(fragments),
@@ -176,11 +176,11 @@ microplastics_corrected <- left_join(x = microplastics_uncorrected, microplastic
          beads_corrected = ifelse(test = beads_corrected < 0,
                                   yes = 0, no = beads_corrected),
          total_microplastics = fragments_corrected + fibers_corrected + beads_corrected,
-         density = total_microplastics / volume_filtered_mL,
-         fragment_density = fragments_corrected / volume_filtered_mL,
-         fiber_density = fibers_corrected / volume_filtered_mL,
-         bead_density = beads_corrected / volume_filtered_mL) %>%
-  select(site, rep, total_microplastics, density,
+         density = total_microplastics / volume_filtered_ml,
+         fragment_density = fragments_corrected / volume_filtered_ml,
+         fiber_density = fibers_corrected / volume_filtered_ml,
+         bead_density = beads_corrected / volume_filtered_ml) %>%
+  select(site, replicate, total_microplastics, density,
          fragment_density, fiber_density, bead_density)
 
 head(microplastics_corrected)
