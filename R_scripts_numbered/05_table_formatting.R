@@ -100,6 +100,7 @@ meta_nut_ppcp_mp <- full_join(x = metadata_formatted,
                               y = nutrients_formatted,
                               by = c("Site" = "site")) %>%
   full_join(x = ., y = ppcp_formatted, by = c("Site" = "site")) %>%
+  full_join(x = ., y = microplastics_formatted, by = c("Site" = "site")) %>%
   full_join(x = ., y = distance, by = c("Site" = "site")) %>%
   mutate(Categorical_distance_weighted_population = ifelse(test = Site %in% low,
                                                            yes = "Low", no = NA),
@@ -109,7 +110,9 @@ meta_nut_ppcp_mp <- full_join(x = metadata_formatted,
          Categorical_distance_weighted_population = ifelse(test = Site %in% high,
                                                            yes = "High",
                                                            no = Categorical_distance_weighted_population)) %>%
-  select(Site, NH4_mg_dm3:cotinine, distance_weighted_population,
+  select(Site, NH4_mg_dm3:cotinine, 
+         Microplastic_density_microplastics_per_L:Bead_density_microplastics_per_L,
+         distance_weighted_population,
          Categorical_distance_weighted_population)
 
 write.csv(x = meta_nut_ppcp_mp, file = "../tables/combined_table3.csv",

@@ -70,7 +70,7 @@ zoom_map <- autoplot(base_map_zoom) +
              alpha = 0.8,  color = "grey70", shape = 21,
              stroke = 2.5) +
   scale_fill_viridis(option = "plasma", name = "log10(IDW Pop)") +
-  scale_size_continuous(range = c(5, 20), guide = "none") +
+  scale_size_continuous(range = c(1, 20), guide = "none") +
   xlab("Longitude") +
   ylab("Latitude") +
   annotate(geom = "text", label = "Bolshoe Goloustnoe",

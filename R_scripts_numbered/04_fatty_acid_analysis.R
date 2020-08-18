@@ -169,6 +169,46 @@ fatty_acid_prop_ppcp_meta_dist <- fatty_acid_ppcp_meta_dist %>%
   select(-concentration, -total_fatty_acid) %>%
   spread(key = fatty_acid, value = prop_fatty_acid)
 
+# Create linear models to explore which sewage indicators relate with fatty acid profiles
+# Our analysis considers C18 fatty acids in comparison to C20,22 fatty acids.
+# These two fatty acid groups roughly reflect Green:Diatom algal signature,
+# which should inrease with an increasing sewage signal.
+
+# First compare essential fatty acid ratios in periphyton with total PPCP concentration
+peri_ppcp_lm <- lm(((c18_3w3 + c18_4w3) / (c20_5w3 +  + c22_5w3 + c22_6w3)) ~ log10(ppcp_sum),
+               data = filter(fatty_acid_prop_ppcp_meta_dist, Genus == "Periphyton"))
+
+summary(peri_ppcp_lm)
+
+# Second compare essential fatty acid ratios in invertebrates with total PPCP conentration
+eulimnogammarus_verrucosus_ppcp_lm <- lm(((c18_3w3 + c18_4w3) / (c20_5w3 +  + c22_5w3 + c22_6w3)) ~ log10(ppcp_sum),
+                                         data = filter(fatty_acid_prop_ppcp_meta_dist, 
+                                                       taxon == "Eulimnogammarus_verrucosus"))
+
+summary(eulimnogammarus_verrucosus_ppcp_lm)
+
+eulimnogammarus_vitatus_ppcp_lm <- lm(((c18_3w3 + c18_4w3) / (c20_5w3 +  + c22_5w3 + c22_6w3)) ~ log10(ppcp_sum),
+                                         data = filter(fatty_acid_prop_ppcp_meta_dist, 
+                                                       taxon == "Eulimnogammarus_vitatus"))
+
+summary(eulimnogammarus_vitatus_ppcp_lm)
+
+r_squared <- c(summary(peri_ppcp_lm)$r.squared,
+               summary(eulimnogammarus_verrucosus_ppcp_lm)$r.squared,
+               summary(eulimnogammarus_vitatus_ppcp_lm)$r.squared)
+
+p_values <- c(summary(peri_ppcp_lm)$coefficients[2,4],
+              summary(eulimnogammarus_verrucosus_ppcp_lm)$coefficients[2,4],
+              summary(eulimnogammarus_vitatus_ppcp_lm)$coefficients[2,4])
+
+taxon <- c("Periphyton", "Eulimnogammarus verrucosus", "Eulimnogammarus vittatus")
+
+labels <- data.frame(taxon, p_values, r_squared) %>%
+  mutate(label = paste0("p-value: ",
+                        round(p_values, 3),
+                        "\nR-squared: ",
+                        round(r_squared, 3)))
+
 # This figure is Figure 7 within the body of the associated manuscript.
 ppcp_fa_plot <- fatty_acid_prop_ppcp_meta_dist %>%
   filter(taxon %in% c("Eulimnogammarus_verrucosus", "Eulimnogammarus_vitatus",
@@ -176,34 +216,19 @@ ppcp_fa_plot <- fatty_acid_prop_ppcp_meta_dist %>%
   mutate(taxon = ifelse(test = taxon == "Eulimnogammarus_verrucosus",
                         yes = "Eulimnogammarus verrucosus", no = taxon),
          taxon = ifelse(test = taxon == "Eulimnogammarus_vitatus",
-                        yes = "Eulimnogammarus vitatus", no = taxon),
+                        yes = "Eulimnogammarus vittatus", no = taxon),
          taxon = ifelse(test = taxon == "Periphyton_NA",
                         yes = "Periphyton", no = taxon)) %>%
-ggplot(aes(x = log10(ppcp_sum), y = ((c18_3w3 + c18_4w3) / (c20_5w3 + c22_5w3)))) +
+  ggplot(aes(x = log10(ppcp_sum), y = ((c18_3w3 + c18_4w3) / (c20_5w3 + c22_5w3)))) +
   geom_point(size = 3) +
   facet_wrap(~ taxon) +
   geom_smooth(method = "lm") +
+  geom_label(data = labels %>% filter(taxon != "Periphyton"), aes(label = label, x = -2.0, y = 5), size = 4) +
+  geom_label(data = labels %>% filter(taxon == "Periphyton"), aes(label = label, x = -2.0, y = 2.5), size = 4) +
   xlab(label = "log10([Total PPCP])") +
-  ylab(label = expression(frac(18:3~omega~3 + 18:4~omega~3, 20:5~omega~3 + 22:6~omega~3))) +
+  ylab(label = expression(frac(18:3~omega~3 + 18:4~omega~3, 20:5~omega~3 + 22:5~omega~3 + 22:6~omega~3))) +
   theme_bw() +
   theme(text = element_text(size = 20))
 
 ggsave(filename = "ppcp_fa_plot.png", plot = ppcp_fa_plot, device = "png",
        path = "../figures/", width = 12, height = 6, units = "in")
-
-# Create linear models to explore which sewage indicators relate with fatty acid profiles
-# Our analysis considers C18 fatty acids in comparison to C20,22 fatty acids.
-# These two fatty acid groups roughly reflect Green:Diatom algal signature,
-# which should inrease with an increasing sewage signal.
-
-# First compare essential fatty acid ratios in periphyton with total PPCP concentration
-peri_ppcp_lm <- lm(formula = ((c18_3w3 + c18_4w3) / (c20_5w3 + c22_6w3)) ~ log10(ppcp_sum),
-               data = filter(fatty_acid_prop_ppcp_meta_dist, Genus == "Periphyton"))
-
-summary(peri_ppcp_lm)
-
-# Second compare essential fatty acid ratios in invertebrates with total PPCP conentration
-invert_ppcp_lm <- lm(((c18_3w3 + c18_4w3) / (c20_5w3 +  c22_6w3)) ~ log10(ppcp_sum),
-                   data = filter(fatty_acid_prop_ppcp_meta_dist, Genus != "Periphyton"))
-
-summary(invert_ppcp_lm)
