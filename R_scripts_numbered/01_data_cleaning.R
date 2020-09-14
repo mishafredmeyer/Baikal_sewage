@@ -124,11 +124,14 @@ write.csv(x = periphyton_summarized, file = "../cleaned_data/periphyton.csv",
 stable_isotopes_orig <- read.csv(file = "../clean_disaggregated_data/stable_isotopes.csv",
                                  header = TRUE)
 
-# All looks good from previous aggregation. 
+# Remove comments column
 
-head(stable_isotopes_orig)
+stable_isotopes <- stable_isotopes_orig %>%
+  select(-comments)
 
-write.csv(x = stable_isotopes_orig, file = "../cleaned_data/stable_isotopes.csv",
+head(stable_isotopes)
+
+write.csv(x = stable_isotopes, file = "../cleaned_data/stable_isotopes.csv",
           row.names = FALSE)
 
 
@@ -137,11 +140,14 @@ write.csv(x = stable_isotopes_orig, file = "../cleaned_data/stable_isotopes.csv"
 fatty_acid_orig <- read.csv(file = "../clean_disaggregated_data/fatty_acid.csv",
                             header = TRUE)
 
-# All looks good from previous aggregation.
+# Remove comments column because our analysis focuses on proportions 
 
-head(fatty_acid_orig)
+fatty_acids <- fatty_acid_orig %>%
+  select(-comments)
 
-write.csv(x = fatty_acid_orig, file = "../cleaned_data/fatty_acid.csv",
+head(fatty_acids)
+
+write.csv(x = fatty_acids, file = "../cleaned_data/fatty_acid.csv",
           row.names = FALSE)
 
 # 9. Load and clean microplastics data -----------------------------------

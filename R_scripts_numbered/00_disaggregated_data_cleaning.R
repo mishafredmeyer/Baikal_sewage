@@ -307,7 +307,7 @@ fatty_acid <- fatty_acid_orig %>%
          Species = ifelse(test = Species == "zone",
                           yes = NA, no = Species)) %>%
   rename(site = location) %>%
-  select(site:c24_0)
+  select(site:c24_0, comments)
 
 head(fatty_acid)
 

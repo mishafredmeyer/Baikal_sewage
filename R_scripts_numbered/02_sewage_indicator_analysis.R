@@ -192,9 +192,9 @@ n15_PI_plot <- ggplot(data = stable_isotopes_meta_dist[stable_isotopes$Genus != 
                       aes(x = log10(distance_weighted_population), y = log10(N15))) +
   geom_point() +
   geom_smooth(method = "lm", se = TRUE) +
-  ylab("log10(N15)") +
+  ylab(expression(paste("log10(",delta^{15}, "N (\u2030))"))) +
   xlab("log10(IDW Population)") +
-  ggtitle("N15 vs. IDW Population") +
+  ggtitle(expression(paste(delta^{15}, "N \u2030  vs. IDW Population"))) +
   xlim(c(2.75, 3.75)) +
   annotate(geom = "label", x = 3.00, y = 0.89,
            label = paste0("p-value: ",
@@ -222,9 +222,9 @@ c13_PI_plot <- ggplot(stable_isotopes_meta_dist[stable_isotopes$Genus != "Periph
                       aes(x = log10(distance_weighted_population), y = (C13))) +
   geom_point() +
   geom_smooth(method = "lm", se = TRUE) +
-  ylab("C13%") +
+  ylab(expression(paste("log10(",delta^{13}, "C (\u2030))"))) +
   xlab("log10(IDW Population)") +
-  ggtitle("C13% vs. IDW Population") +
+  ggtitle(expression(paste(delta^{13}, "C \u2030 vs. IDW Population"))) +
   xlim(c(2.75, 3.75)) +
   annotate(geom = "label", x = 3.00, y = -17,
            label = paste0("p-value: ",
