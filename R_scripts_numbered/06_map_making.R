@@ -35,7 +35,7 @@ sample_points_merc <- projectMercator(lat = sample_points$lat,
 # Options: https://www.r-bloggers.com/the-openstreetmap-package-opens-up/
 base_map <- openmap(upperLeft = c(55.915113, 102.2324553),
                       lowerRight = c(51.1800703, 110.8),
-                      type = "stamen-toner") %>%
+                      type = "nps") %>%
   openproj()
 
 # Get a zoomed in map
@@ -91,7 +91,7 @@ zoom_map <- autoplot(base_map_zoom) +
 # https://stackoverflow.com/questions/5219671/it-is-possible-to-create-inset-graphs
 baikal_combine <- ggdraw() +
   draw_plot(zoom_map) +
-  draw_plot(inset_map, x = -0.01, y = 0.6, width = .455, height = .26, scale = 1)
+  draw_plot(inset_map, x = -0.01, y = 0.57, width = .5, height = .33, scale = 1)
 
 # This plot is associated with Figure 1 in the accompanying manuscript.
 ggsave(filename = "../figures/baikal_map.png", plot = baikal_combine, device = "png",

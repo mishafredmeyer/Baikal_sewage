@@ -61,6 +61,8 @@ mean_var <- dplyr::mutate(mean_var, Var_Mean_Ratio = Variance / Mean)
 row.names(mean_var) <- colnames(fatty_acid_whole_wide[, 5:63])
 mean_var[order(mean_var$Var_Mean_Ratio, decreasing = TRUE), ]
 
+write.csv(x = mean_var[order(mean_var$Var_Mean_Ratio, decreasing = TRUE), ], file = "../tables/cv_all_fa.csv", row.names = FALSE)
+
 # Perform NMDS
 whole_fatty_acid_metaMDS <- metaMDS(comm = fatty_acid_whole_wide[, 5:63],
                                     distance = "bray", k = 2, try = 100)
@@ -77,9 +79,10 @@ data_scores <- as.data.frame(scores(whole_fatty_acid_metaMDS)) %>%
 # Create plot
 # This figure is associated with figure S1 in the associated manuscript
 nmds <- ggplot() +
-  geom_point(data = data_scores, aes(x = NMDS1, y = NMDS2, fill = taxon),
-             size = 10, shape = 21, color = "grey60", alpha = .75, stroke = 2) +
-  scale_fill_manual(values = inferno(69)[c(1, 13, 18, 20, 27, 33, 38, 45, 55)]) +
+  geom_point(data = data_scores, aes(x = NMDS1, y = NMDS2, shape = taxon),
+             size = 10, alpha = .75) +
+  #scale_color_manual(values = viridis(69)[c(1, 13, 25, 33, 38, 50, 60, 69)]) +
+  scale_shape_manual(values = c(1:7)) + 
   ggtitle("NMDS with Entire FA Spectrum") +
   annotate("label", x = 0.4, y = 0.45,
            label = paste("Stress: ", round(whole_fatty_acid_metaMDS$stress, digits = 3)),
@@ -92,7 +95,7 @@ nmds <- ggplot() +
         legend.text = element_text(size = 12))
 nmds
 
-ggsave(filename = "all_species_all_FA.png", plot = nmds, device = "png",
+ggsave(filename = "all_species_all_FA_symbols.png", plot = nmds, device = "png",
        path = "../figures/", width = 12, height = 10, units = "in", dpi = 300)
 
 
@@ -120,6 +123,9 @@ mean_var <- dplyr::mutate(mean_var, Var_Mean_Ratio = Variance / Mean)
 row.names(mean_var) <- colnames(fatty_acid_essential_wide[, 5:12])
 mean_var[order(mean_var$Var_Mean_Ratio, decreasing = TRUE), ]
 
+write.csv(x = mean_var[order(mean_var$Var_Mean_Ratio, decreasing = TRUE), ], file = "../tables/cv_efa.csv", row.names = FALSE)
+
+
 # Perform NMDS
 essential_fatty_acid_metaMDS <- metaMDS(comm = fatty_acid_essential_wide[, 5:12],
                                         distance = "bray", k = 2, try = 100)
@@ -136,9 +142,10 @@ data_scores <- as.data.frame(scores(essential_fatty_acid_metaMDS)) %>%
 # Plot NMDS for all species but only Essential Fatty Acids
 # This plot is figure S2 in the associated ms.
 nmds <- ggplot() +
-  geom_point(data = data_scores, aes(x = NMDS1, y = NMDS2, fill = taxon),
-             size = 10, shape = 21, color = "grey60", alpha = .75, stroke = 2) +
-  scale_fill_manual(values = inferno(69)[c(1, 13, 18, 20, 27, 33, 38, 45, 55)]) +
+  geom_point(data = data_scores, aes(x = NMDS1, y = NMDS2, shape = taxon),
+             size = 10, alpha = .75) +
+  #scale_fill_manual(values = inferno(69)[c(1, 13, 18, 20, 27, 33, 38, 45, 55)]) +
+  scale_shape_manual(values = c(1:7)) + 
   ggtitle("NMDS with Essential FA Spectrum") +
   annotate("label", x = -0.5, y = 0.35,
            label = paste("Stress: ",
@@ -152,7 +159,7 @@ nmds <- ggplot() +
         legend.text = element_text(size = 12))
 nmds
 
-ggsave(filename = "all_species_essential_FA.png", plot = nmds, device = "png",
+ggsave(filename = "all_species_essential_FA_symbol.png", plot = nmds, device = "png",
        path = "../figures/", width = 12, height = 10, units = "in",
        dpi = 300)
 
@@ -160,9 +167,7 @@ ggsave(filename = "all_species_essential_FA.png", plot = nmds, device = "png",
 # 3. Correlating fatty acids with sewage ----------------------------------
 
 fatty_acid_prop_ppcp_meta_dist <- fatty_acid_ppcp_meta_dist %>%
-  select(site, taxon, Genus, Species, c18_3w3, c18_4w3, c20_5w3, c22_5w3, c22_6w3,
-         c18_2w6, c18_2w6t, c20_4w6, caffeine:ppcp_sum, distance_weighted_population) %>%
-  gather(key = fatty_acid, value = concentration, c18_3w3:c20_4w6) %>%
+  gather(key = fatty_acid, value = concentration, c12_0:c24_0) %>%
   group_by(site, Genus, Species) %>%
   mutate(total_fatty_acid = sum(concentration),
          prop_fatty_acid = concentration / total_fatty_acid) %>%
@@ -175,21 +180,21 @@ fatty_acid_prop_ppcp_meta_dist <- fatty_acid_ppcp_meta_dist %>%
 # which should inrease with an increasing sewage signal.
 
 # First compare essential fatty acid ratios in periphyton with total PPCP concentration
-peri_ppcp_lm <- lm(((c18_3w3 + c18_4w3) / (c20_5w3 +  + c22_5w3 + c22_6w3)) ~ log10(ppcp_sum),
+peri_ppcp_lm <- lm(((c18_3w3) / (c20_5w3)) ~ log10(ppcp_sum),
                data = filter(fatty_acid_prop_ppcp_meta_dist, Genus == "Periphyton"))
 
 summary(peri_ppcp_lm)
 
 # Second compare essential fatty acid ratios in invertebrates with total PPCP conentration
-eulimnogammarus_verrucosus_ppcp_lm <- lm(((c18_3w3 + c18_4w3) / (c20_5w3 +  + c22_5w3 + c22_6w3)) ~ log10(ppcp_sum),
+eulimnogammarus_verrucosus_ppcp_lm <- lm(((c18_3w3) / (c20_5w3)) ~ log10(ppcp_sum),
                                          data = filter(fatty_acid_prop_ppcp_meta_dist, 
                                                        taxon == "Eulimnogammarus_verrucosus"))
 
 summary(eulimnogammarus_verrucosus_ppcp_lm)
 
-eulimnogammarus_vitatus_ppcp_lm <- lm(((c18_3w3 + c18_4w3) / (c20_5w3 +  + c22_5w3 + c22_6w3)) ~ log10(ppcp_sum),
+eulimnogammarus_vitatus_ppcp_lm <- lm(((c18_3w3) / (c20_5w3)) ~ log10(ppcp_sum),
                                          data = filter(fatty_acid_prop_ppcp_meta_dist, 
-                                                       taxon == "Eulimnogammarus_vitatus"))
+                                                       taxon == "Eulimnogammarus_vittatus"))
 
 summary(eulimnogammarus_vitatus_ppcp_lm)
 
@@ -211,22 +216,22 @@ labels <- data.frame(taxon, p_values, r_squared) %>%
 
 # This figure is Figure 7 within the body of the associated manuscript.
 ppcp_fa_plot <- fatty_acid_prop_ppcp_meta_dist %>%
-  filter(taxon %in% c("Eulimnogammarus_verrucosus", "Eulimnogammarus_vitatus",
+  filter(taxon %in% c("Eulimnogammarus_verrucosus", "Eulimnogammarus_vittatus",
                       "Periphyton_NA")) %>%
   mutate(taxon = ifelse(test = taxon == "Eulimnogammarus_verrucosus",
                         yes = "Eulimnogammarus verrucosus", no = taxon),
-         taxon = ifelse(test = taxon == "Eulimnogammarus_vitatus",
+         taxon = ifelse(test = taxon == "Eulimnogammarus_vittatus",
                         yes = "Eulimnogammarus vittatus", no = taxon),
          taxon = ifelse(test = taxon == "Periphyton_NA",
                         yes = "Periphyton", no = taxon)) %>%
-  ggplot(aes(x = log10(ppcp_sum), y = ((c18_3w3 + c18_4w3) / (c20_5w3 + c22_5w3)))) +
+  ggplot(aes(x = log10(ppcp_sum), y = ((c18_3w3) / (c20_5w3)))) +
   geom_point(size = 3) +
   facet_wrap(~ taxon) +
   geom_smooth(method = "lm") +
   geom_label(data = labels %>% filter(taxon != "Periphyton"), aes(label = label, x = -2.0, y = 5), size = 4) +
   geom_label(data = labels %>% filter(taxon == "Periphyton"), aes(label = label, x = -2.0, y = 2.5), size = 4) +
   xlab(label = "log10([Total PPCP])") +
-  ylab(label = expression(frac(18:3~omega~3 + 18:4~omega~3, 20:5~omega~3 + 22:5~omega~3 + 22:6~omega~3))) +
+  ylab(label = expression(frac(18:3~omega~3, 20:5~omega~3 ))) +
   theme_bw() +
   theme(text = element_text(size = 20))
 
