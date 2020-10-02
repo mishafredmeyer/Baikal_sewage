@@ -1,4 +1,4 @@
-# This script aggregate the fatty acid data and performs
+# This script aggregates the fatty acid data and performs
 # several univariate and multivariate analyses aimed at
 # relating fatty acid community compositions with sewage
 # indicators in Lake Baikal.
