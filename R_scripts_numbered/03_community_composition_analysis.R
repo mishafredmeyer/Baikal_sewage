@@ -136,7 +136,7 @@ peri_community <- periphyton_meta_dist_wide %>%
   select(diatom:ulothrix)
 
 # Run NMDS
-periphyton_nmds <- metaMDS(comm = peri_community,  try = 100)
+periphyton_nmds <- metaMDS(comm = peri_community,  try = 100, distance = "bray")
 periphyton_nmds
 
 # Pull scores from NMDS and add site data
@@ -169,11 +169,16 @@ periphyton_IDW_pop_group_plot <- ggplot() +
   scale_size_continuous(range = c(5, 20), guide = FALSE) +
   scale_color_manual(values = inferno(15)[c(3, 8, 11)],
                      name = "IDW Population Grouping") +
+  geom_text_repel(data = species_scores %>% 
+                    filter(species %in% c("spirogyra", "ulothrix", "diatom")), 
+                  aes(x = NMDS1, y = NMDS2, label = species), 
+            size = 10) + 
   guides(colour = guide_legend(override.aes = list(size = 10))) +
   annotate("label", x = 0, y = -0.35, size = 10,
            label = paste("Stress: ", round(periphyton_nmds$stress, digits = 3))) +
   theme_minimal() +
   theme(legend.position = "right",
+        legend.key=element_blank(),
         text = element_text(size = 24))
 
 periphyton_IDW_pop_group_plot
@@ -196,7 +201,7 @@ ggsave(filename = "../figures/periphyton_kmeans_analysis.png",
        dpi = 300)
 
 # Run PERMANOVA
-adonis(formula = periphyton_meta_dist_wide[, 2:7]
+adonis2(formula = periphyton_meta_dist_wide[, 2:7]
        ~ periphyton_meta_dist_wide[, 22],
        data = periphyton_meta_dist_wide,
        method = "bray", permutations = 999)
@@ -411,7 +416,7 @@ invertebrates_metaMDS <- metaMDS(comm = inver_comm, distance = "bray", try = 100
 invertebrates_metaMDS
 
 # Pull scores from NMDS and add site data
-data_scores <- as.data.frame(scores(x = invertebrates_metaMDS))
+data_scores <- as.data.frame(scores(x = invertebrates_metaMDS, display = "sites"))
 data_scores$site <- invertebrates_well_preserved_wide$site
 
 # Join scores with PPCP data and code into IDW_pop_group
@@ -423,6 +428,9 @@ data_scores <- full_join(x = data_scores, y = ppcp_meta_dist, by = "site") %>%
          IDW_pop_group = factor(x = IDW_pop_group,
                                 levels = c("High", "Low/Mod")))
 
+species_scores <- as.data.frame(scores(x = invertebrates_metaMDS, display = "species"))
+species_scores$species <- rownames(species_scores)
+
 # Plot NMDS
 inverts_well_preserved_nmds <- ggplot() +
   geom_point(data = data_scores,
@@ -432,13 +440,22 @@ inverts_well_preserved_nmds <- ggplot() +
   scale_color_manual(values = inferno(15)[c(3, 8, 11, 14)],
                      name = "IDW Population Grouping") +
   guides(colour = guide_legend(override.aes = list(size = 10))) +
+  geom_text_repel(data = species_scores %>% 
+                    filter(species %in% c("Eulimnogammarus", "Poekilogammarus", "Valvatidae",
+                                          "Caddisflies", "Brandtia", "Baicaliidae",
+                                          "Planorbidae")) %>%
+                    mutate(NMDS1 = ifelse(test = species == "Poekilogammarus", 
+                                          yes = NMDS1+0.04, no = NMDS1),
+                           NMDS1 = ifelse(test = species == "Eulimnogammarus", 
+                                          yes = NMDS1-0.04, no = NMDS1)),
+                  aes(x = NMDS1, y = NMDS2, label = species), 
+                  size = 10, color = "grey40") + 
   coord_equal() +
-  ylim(c(-.5, .5)) +
-  xlim(c(-.5, .5)) +
   annotate("label", x = -0.15, y = 0.4, size = 10,
            label = paste("Stress: ",
                          round(invertebrates_metaMDS$stress, digits = 3))) +
   theme(legend.position = "right",
+        legend.key=element_blank(),
         strip.text.x = element_text(size = 20, color = "grey80"),
         text = element_text(size = 24),
         axis.title.y = element_text(margin = margin(0, 20, 0, 0)),
@@ -467,7 +484,7 @@ inverts_well_preserved_meta_dist_wide <- full_join(x = invertebrates_well_preser
   data.frame()
 
 # Run PERMANOVA
-adonis(formula = sqrt(inverts_well_preserved_meta_dist_wide[, 3:14]) ~
+adonis2(formula = sqrt(inverts_well_preserved_meta_dist_wide[, 3:14]) ~
          inverts_well_preserved_meta_dist_wide[, 29],
        data = inverts_well_preserved_meta_dist_wide,
        method = "bray")
