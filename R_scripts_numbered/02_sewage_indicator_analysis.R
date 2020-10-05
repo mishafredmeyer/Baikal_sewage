@@ -276,7 +276,6 @@ ggsave(filename = "../figures/chlorophylla_PI_plot.png",
 # 7. Microplastics analysis -----------------------------------------------
 
 # Format microplastics data before join
-
 microplastics <- microplastics %>%
   group_by(site) %>%
   summarize(mean_total = mean(x = total_microplastics, na.rm = TRUE),

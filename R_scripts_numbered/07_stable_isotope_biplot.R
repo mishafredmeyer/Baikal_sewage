@@ -1,4 +1,4 @@
-# This script aggregates stables isotopes with sewage
+# This script aggregates stable isotopes with sewage
 # indicator data in Lake Baikal to produce a stable isotope
 # biplot for the associated manuscript. 
 

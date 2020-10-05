@@ -125,7 +125,6 @@ stable_isotopes_orig <- read.csv(file = "../clean_disaggregated_data/stable_isot
                                  header = TRUE)
 
 # Remove comments column
-
 stable_isotopes <- stable_isotopes_orig %>%
   select(-comments)
 
@@ -141,7 +140,6 @@ fatty_acid_orig <- read.csv(file = "../clean_disaggregated_data/fatty_acid.csv",
                             header = TRUE)
 
 # Remove comments column because our analysis focuses on proportions 
-
 fatty_acids <- fatty_acid_orig %>%
   select(-comments)
 
@@ -149,6 +147,7 @@ head(fatty_acids)
 
 write.csv(x = fatty_acids, file = "../cleaned_data/fatty_acid.csv",
           row.names = FALSE)
+
 
 # 9. Load and clean microplastics data -----------------------------------
 

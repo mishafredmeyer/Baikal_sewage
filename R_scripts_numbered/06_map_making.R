@@ -22,7 +22,7 @@ sample_points <- full_join(x = metadata,
                            y = distance,
                            by = c("site"))
 
-# Make the locs Mercator
+# Make the locations Mercator
 sample_points_merc <- projectMercator(lat = sample_points$lat,
                                       long = sample_points$long) %>%
   as.data.frame() %>%
@@ -45,7 +45,7 @@ base_map_zoom <- openmap(upperLeft = c(52.15, 104.75),
   openproj()
 
 # Build the inset map with the basemap
-inset_map <- autoplot(base_map) +
+inset_map <- autoplot.OpenStreetMap(base_map) +
   geom_point(data = sample_points_merc,
              aes(x = long, y = lat,
                  fill = log10(distance_weighted_population)),
@@ -62,7 +62,7 @@ inset_map <- autoplot(base_map) +
         axis.title.y = element_blank())
 
 # Build a close up map with satellite imagery & zoomed in map
-zoom_map <- autoplot(base_map_zoom) +
+zoom_map <- autoplot.OpenStreetMap(base_map_zoom) +
   geom_point(data = sample_points_merc,
              aes(x = long, y = lat,
                  size = log10(distance_weighted_population),
