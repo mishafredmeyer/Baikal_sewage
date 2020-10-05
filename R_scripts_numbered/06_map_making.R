@@ -22,7 +22,7 @@ sample_points <- full_join(x = metadata,
                            y = distance,
                            by = c("site"))
 
-# Make the locs Mercator
+# Make the locations Mercator
 sample_points_merc <- projectMercator(lat = sample_points$lat,
                                       long = sample_points$long) %>%
   as.data.frame() %>%
