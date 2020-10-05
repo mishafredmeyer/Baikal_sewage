@@ -8,6 +8,7 @@ library(viridis)
 library(viridisLite)
 library(vegan)
 library(ggpubr)
+library(ggrepel)
 
 
 # 1. Load the data --------------------------------------------------------
@@ -233,8 +234,6 @@ labels <- data.frame(taxon, p_values, r_squared) %>%
 
 # This figure is Figure 7 within the body of the associated manuscript.
 
-
-  
 ppcp_filamentous_diatom_fa_plot <- fatty_acid_prop_ppcp_meta_dist %>%
     filter(taxon %in% c("Eulimnogammarus_verrucosus", "Eulimnogammarus_vittatus",
                         "Periphyton_NA")) %>%
@@ -369,14 +368,6 @@ write.csv(x = complete_fatty_acid_repo,
 
 # 4.2 Create table of mean fatty acid proportions -------------------------
 
-fatty_acid_prop_ppcp_meta_dist <- fatty_acid_ppcp_meta_dist %>%
-  gather(key = fatty_acid, value = concentration, c12_0:c24_0) %>%
-  group_by(site, Genus, Species) %>%
-  mutate(total_fatty_acid = sum(concentration),
-         prop_fatty_acid = concentration / total_fatty_acid) %>%
-  select(-concentration, -total_fatty_acid) %>%
-  spread(key = fatty_acid, value = prop_fatty_acid)
-
 sample_count <- fatty_acid_ppcp_meta_dist %>% 
   group_by(Genus, Species) %>% 
   count()
@@ -410,6 +401,10 @@ fatty_acid_type_props_plot <- fatty_acid_prop_ppcp_meta_dist %>%
          fatty_acid_type = ifelse(fatty_acid %in% mufa, "MUFA", fatty_acid_type),
          fatty_acid_type = ifelse(fatty_acid %in% scufa, "SCPUFA", fatty_acid_type),
          fatty_acid_type = ifelse(fatty_acid %in% lcufa, "LCPUFA", fatty_acid_type)) %>%
+  mutate(taxon = gsub(pattern = "_", replacement = " ", x = taxon),
+         taxon = gsub(pattern = "NA", replacement = "", x = taxon),
+         taxon = ifelse(test = grepl(pattern = "Drapa", x = taxon),
+                        yes = "Drapa spp.", no = taxon)) %>%
   select(site, ppcp_sum, distance_weighted_population, taxon, 
          Genus, Species, fatty_acid_type, fa_prop) %>%
   group_by(site, ppcp_sum, distance_weighted_population, taxon,
@@ -418,13 +413,21 @@ fatty_acid_type_props_plot <- fatty_acid_prop_ppcp_meta_dist %>%
   ungroup() %>%
   filter(Genus != "Hyalella") %>%
   ggplot(aes(x = log10(ppcp_sum), y = sum_fa_prop, color = taxon)) +
-  geom_point(size = 2) +
+  geom_point(size = 4) +
   geom_smooth(method = "lm", se = FALSE) +
+  scale_color_viridis_d(option = "viridis") +
   facet_grid(~fatty_acid_type) +
   ylab("Total proportion") +
   theme_bw() +
   theme(legend.position = "bottom",
-        legend.text = element_text(size = 6))
+        title = element_text(size = 20),
+        axis.text = element_text(size = 16),
+        axis.title = element_text(size = 20),
+        legend.text = element_text(size = 20),
+        strip.text = element_text(size = 16))
+
+ggsave(filename = "fatty_acid_type_props_plot.png", plot = fatty_acid_type_props_plot, device = "png",
+       path = "../figures/", height = 8, width = 15, units = "in")
 
 
 # 5. Multivariate analysis of filamentous and diatom FA -------------------
@@ -455,27 +458,31 @@ species_scores <- as.data.frame(scores(peri_nmds, display = "species"))
 nmds <- ggplot() +
   geom_point(data = data_scores, aes(x = NMDS1, y = 0.5, shape = taxon,
                                      size = ppcp_sum),
-             alpha = .75) +
-  geom_point(data = species_scores, aes(x = NMDS1, y = 1)) +
+             alpha = .5) +
+  #geom_point(data = species_scores, aes(x = NMDS1, y = 1), size = 4) +
   geom_text_repel(data = species_scores, aes(x = NMDS1, y = 1,
-                                             label = rownames(species_scores))) +
-  #scale_color_manual(values = viridis(69)[c(1, 13, 25, 33, 38, 50, 60, 69)]) +
+                                             label = rownames(species_scores)),
+                  size = 10, segment.size = NA) +
+  scale_size_continuous(name = "[Total PPCP]", range = c(5,20)) +
+  guides(shape = guide_legend(override.aes = list(size=10))) + 
   ggtitle("NMDS with Filamentous:Diatom Fatty Acids") +
   ylab("") + 
   ylim(c(0,1.25)) +
-  annotate("label", x = 0.4, y = 0.25,
+  annotate("label", x = 0, y = 0.25,
            label = paste("Stress: ", round(peri_nmds$stress, digits = 3)),
-           size = 5) +
+           size = 10) +
   theme_minimal() +
   theme(legend.position = "right",
-        title = element_text(size = 10),
-        axis.text = element_text(size = 10),
-        axis.title = element_text(size = 10),
-        legend.text = element_text(size = 8),
+        title = element_text(size = 20),
+        axis.text = element_text(size = 20),
+        axis.title = element_text(size = 20),
+        legend.text = element_text(size = 20),
         axis.text.y = element_blank(),
         panel.grid.major.y = element_blank(),
         panel.grid.minor.y = element_blank())
 
+ggsave(filename = "filamentous_diatom_nmds_peri_drapa.png", plot = nmds, device = "png", 
+       path = "../figures/", width = 16, height = 8, units = "in")
 
 # 5.2 Macroinvertebrate analysis ------------------------------------------
 
@@ -502,21 +509,26 @@ species_scores <- as.data.frame(scores(invert_nmds, display = "species"))
 nmds <- ggplot() +
   geom_point(data = data_scores, aes(x = NMDS1, y = NMDS2, shape = taxon,
                                      size = ppcp_sum),
-             alpha = .75) +
-  geom_point(data = species_scores, aes(x = NMDS1, y = NMDS2)) +
-  geom_text_repel(data = species_scores, aes(x = NMDS1, y = NMDS2,
-                                             label = rownames(species_scores))) +
-  #scale_color_manual(values = viridis(69)[c(1, 13, 25, 33, 38, 50, 60, 69)]) +
+             alpha = .5) +
+  #geom_point(data = species_scores, aes(x = NMDS1, y = NMDS2)) +
+  geom_text_repel(data = species_scores %>%
+                    mutate(NMDS1 = ifelse(test = rownames(species_scores) == "c18_2w6",
+                                          yes = NMDS1-0.04, no = NMDS1)), 
+                  aes(x = NMDS1, y = NMDS2, label = rownames(species_scores)),
+                  size = 10, segment.size = NA) +
+  scale_size_continuous(name = "[Total PPCP]", range = c(5,20)) +
+  guides(shape = guide_legend(override.aes = list(size=10))) + 
   ggtitle("NMDS with Filamentous:Diatom Fatty Acids") +
-  #ylim(c(0,1.25)) +
   annotate("label", x = 0.2, y = 0.2,
            label = paste("Stress: ", round(invert_nmds$stress, digits = 3)),
-           size = 5) +
+           size = 10) +
   theme_minimal() +
-  theme(legend.position = "bottom",
-        title = element_text(size = 10),
-        axis.text = element_text(size = 10),
-        axis.title = element_text(size = 10),
-        legend.text = element_text(size = 8))
+  theme(legend.position = "right",
+        title = element_text(size = 20),
+        axis.text = element_text(size = 20),
+        axis.title = element_text(size = 20),
+        legend.text = element_text(size = 20))
 
+ggsave(filename = "filamentous_diatom_nmds_amphipods.png", plot = nmds, device = "png", 
+       path = "../figures/", width = 16, height = 10, units = "in")
 
