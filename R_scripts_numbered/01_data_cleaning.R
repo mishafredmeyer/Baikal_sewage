@@ -104,7 +104,7 @@ write.csv(x = inverts_wide, file = "../cleaned_data/invertebrates.csv",
 periphyton_orig <- read.csv(file = "../clean_disaggregated_data/periphyton.csv",
                             header = TRUE)
 
-# Make long format, take mean counts by taxon
+# Take mean counts by taxon
 periphyton_summarized <- periphyton_orig %>%
   select(-contains("filament")) %>%
   filter(!is.na(diatom)) %>%
@@ -154,7 +154,7 @@ write.csv(x = fatty_acids, file = "../cleaned_data/fatty_acid.csv",
 microplastics_orig <- read.csv(file = "../clean_disaggregated_data/microplastics.csv",
                                header = TRUE)
 
-# Run microplastics post-processing calcs, then average by site
+# Isolate samples that are not controls
 microplastics_uncorrected <- microplastics_orig %>%
   select(-comments) %>%
   filter(replicate != "C")

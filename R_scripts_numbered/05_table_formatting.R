@@ -75,14 +75,10 @@ write.csv(x = nutrients_formatted, file = "../tables/nutrients.csv",
 
 microplastics_formatted <- microplastics %>%
   group_by(site) %>%
-  summarize(mean_microplastic_density = mean(density),
-            mean_fragment_density = mean(fragment_density),
-            mean_fiber_density = mean(fiber_density),
-            mean_bead_density = mean(bead_density)) %>%
-  rename(Microplastic_density_microplastics_per_L = mean_microplastic_density,
-         Fragment_density_microplastics_per_L = mean_fragment_density,
-         Fiber_density_microplastics_per_L = mean_fiber_density,
-         Bead_density_microplastics_per_L = mean_bead_density)
+  summarize(Microplastic_density_microplastics_per_L = mean(density),
+            Fragment_density_microplastics_per_L = mean(fragment_density),
+            Fiber_density_microplastics_per_L = mean(fiber_density),
+            Bead_density_microplastics_per_L = mean(bead_density)) 
 
 write.csv(x = microplastics_formatted, file = "../tables/microplastics.csv",
           row.names = FALSE)

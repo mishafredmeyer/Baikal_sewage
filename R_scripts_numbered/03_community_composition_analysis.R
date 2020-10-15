@@ -13,10 +13,11 @@ library(vegan)
 library(factoextra)
 library(cluster)
 library(ggpubr)
+library(ggrepel)
+library(pvclust)
 
 # Pull in function for plotting correlations
 source("panel_cor_function.R")
-
 
 # 2. Load the data --------------------------------------------------------
 
@@ -58,6 +59,14 @@ low <- c("BGO-1", "BGO-2", "BGO-3", "KD-1", "KD-2", "MS-1")
 mod <- c("BK-2", "BK-3", "SM-1")
 high <- c("BK-1", "EM-1", "LI-3", "LI-2", "LI-1")
 
+# Small Function to add some plot labels at the end
+
+add_label <- function(xfrac, yfrac, label, pos = 4, ...) {
+  u <- par("usr")
+  x <- u[1] + xfrac * (u[2] - u[1])
+  y <- u[4] - yfrac * (u[4] - u[3])
+  text(x, y, label, pos = pos, ...)
+}
 
 # 3. Periphyton analysis ---------------------------------------------------
 
@@ -125,11 +134,8 @@ periphyton_meta_dist_wide <- periphyton_meta_dist %>%
   filter(!(site %in% c("OS-1", "OS-2", "OS-3"))) %>%
   mutate(IDW_pop_group = ifelse(test = site %in% high,
                                 yes = "High", no = "NULL"),
-         IDW_pop_group = ifelse(test = (site %in% mod),
-                                yes = "Mod", no = IDW_pop_group),
-         IDW_pop_group = ifelse(test = (site %in% low),
-                                yes = "Low", no = IDW_pop_group)) %>%
-  as.data.frame()
+         IDW_pop_group = ifelse(test = (site %in% c(low,mod)), 
+                                yes = "Low/Mod", no = IDW_pop_group))
 
 # Define community for NMDS
 peri_community <- periphyton_meta_dist_wide %>%
@@ -148,14 +154,12 @@ data_scores$site <- periphyton_meta_dist_wide %>%
 data_scores <- inner_join(x = data_scores, y = ppcp_meta_dist, by = "site") %>%
   mutate(IDW_pop_group = ifelse(test = site %in% high,
                                 yes = "High", no = "NULL"),
-         IDW_pop_group = ifelse(test = site %in% mod,
-                                yes = "Mod", no = IDW_pop_group),
-         IDW_pop_group = ifelse(test = site %in% low,
-                                yes = "Low", no = IDW_pop_group))
+         IDW_pop_group = ifelse(test = (site %in% c(low,mod)), 
+                                yes = "Low/Mod", no = IDW_pop_group))
 
 # Rework IDW_pop_group column as a factor
 data_scores$IDW_pop_group <- factor(x = data_scores$IDW_pop_group,
-                                    levels = c("High", "Mod", "Low"))
+                                    levels = c("High", "Low/Mod"))
 
 # Pull species scores from NMDS
 species_scores <- as.data.frame(scores(x = periphyton_nmds, display = "species"))
@@ -166,7 +170,7 @@ periphyton_IDW_pop_group_plot <- ggplot() +
   geom_point(data = data_scores,
              aes(x = NMDS1, y = NMDS2, size = log10(distance_weighted_population),
                  color = IDW_pop_group)) +
-  scale_size_continuous(range = c(5, 20), guide = FALSE) +
+  scale_size_continuous(range = c(12, 28), guide = FALSE) +
   scale_color_manual(values = inferno(15)[c(3, 8, 11)],
                      name = "IDW Population Grouping") +
   geom_text_repel(data = species_scores %>% 
@@ -188,23 +192,48 @@ ggsave(filename = "../figures/periphyton_IDW_pop_group_plot.png",
        plot = periphyton_IDW_pop_group_plot, device = "png", height = 10,
        width = 20, dpi = 300)
 
-# Vizualize optimum cluster number
-peri_cluster <- fviz_nbclust(x = peri_community, FUNcluster = kmeans,
-                             method = "wss")
+# Vizualize optimum cluster number with wss method
+peri_cluster_wss <- fviz_nbclust(x = as.matrix(vegdist(x = peri_community, method = "bray",
+                                                       diag = TRUE, upper = TRUE)),
+                                 FUNcluster = cluster::pam, method = "wss")
+peri_cluster_wss
 
-peri_cluster
+peri_cluster_sil <- fviz_nbclust(x = as.matrix(vegdist(x = peri_community, method = "bray",
+                                                       diag = TRUE, upper = TRUE)),
+                                 FUNcluster = cluster::pam, method = "silhouette")
+peri_cluster_sil
 
-# Export plot
-# This plot correcspond with figure S1a in the associated manuscript.
-ggsave(filename = "../figures/periphyton_kmeans_analysis.png",
-       plot = peri_cluster, device = "png", height = 10, width = 20,
+peri_hclust <- pvclust(as.matrix(vegdist(x = peri_community, method = "bray",
+                                           diag = TRUE, upper = TRUE)), method.hclust = "median", 
+                         method.dist = "correlation")
+
+plot(peri_hclust)
+pvrect(peri_hclust, alpha = 0.90)
+
+# Export plots
+# These plots correspond with figures S1a & S1c in the associated manuscript.
+ggsave(filename = "../figures/periphyton_pam_analysis_wss.png",
+       plot = peri_cluster_wss, device = "png", height = 10, width = 20,
+       dpi = 300)
+
+ggsave(filename = "../figures/periphyton_pam_analysis_sil.png",
+       plot = peri_cluster_sil, device = "png", height = 10, width = 20,
+       dpi = 300)
+
+ggsave(filename = "../figures/periphyton_hclust_analysis.png",
+       plot = plot(peri_hclust), device = "png", height = 10, width = 20,
        dpi = 300)
 
 # Run PERMANOVA
 adonis2(formula = periphyton_meta_dist_wide[, 2:7]
-       ~ periphyton_meta_dist_wide[, 22],
+       ~ log10(periphyton_meta_dist_wide[, 21]),
        data = periphyton_meta_dist_wide,
        method = "bray", permutations = 999)
+
+adonis2(formula = periphyton_meta_dist_wide[, 2:7]
+        ~ periphyton_meta_dist_wide[, 22],
+        data = periphyton_meta_dist_wide,
+        method = "bray", permutations = 999)
 
 simper_results <- simper(comm = periphyton_meta_dist_wide[, 2:7],
                          group = periphyton_meta_dist_wide[, 22],
@@ -247,7 +276,7 @@ invertebrates_long <- invertebrate_meta_dist %>%
                            yes = "Mollusc", no = grouping),
          grouping = ifelse(test = Genus == "Asellidae",
                            yes = "Isopod", no = grouping),
-         grouping = ifelse(test = Genus == "caddisflies",
+         grouping = ifelse(test = Genus == "Caddisflies",
                            yes = "Caddisflies", no = grouping),
          grouping = ifelse(test = Genus == "flatworms",
                            yes = "Planaria", no = grouping),
@@ -297,7 +326,7 @@ invertebrates_condensed_wide <- invertebrate_meta_dist %>%
   unique() %>%
   spread(key = Genus, value = total_Genus)
 
-# Check
+# Check how data are formatted
 head(invertebrates_condensed_wide)
 
 # Check for correlations
@@ -402,14 +431,36 @@ invertebrates_well_preserved_wide <- invertebrate_meta_dist %>%
 inver_comm <- sqrt(invertebrates_well_preserved_wide[, 3:14])
 
 # Vizualize optimum cluster number for invert community
-invert_cluster <- fviz_nbclust(x = inver_comm,
-                               FUNcluster = kmeans, method = "wss")
-invert_cluster
+invert_cluster_wss <- fviz_nbclust(x = as.matrix(vegdist(x = inver_comm, method = "bray",
+                                                         diag = TRUE, upper = TRUE)),
+                                   FUNcluster = cluster::pam, method = "wss")
+invert_cluster_wss
 
-# Export plot
-ggsave(filename = "../figures/invertebrate_kmeans_analysis.png",
-       plot = invert_cluster, device = "png",
+invert_cluster_sil <- fviz_nbclust(x = as.matrix(vegdist(x = inver_comm, method = "bray",
+                                                         diag = TRUE, upper = TRUE)),
+                                   FUNcluster = cluster::pam, method = "silhouette", print.summary = FALSE)
+invert_cluster_sil
+
+invert_hclust <- pvclust(as.matrix(vegdist(x = inver_comm, method = "bray",
+                                   diag = TRUE, upper = TRUE)), method.hclust = "median", 
+                         method.dist = "correlation")
+
+plot(invert_hclust)
+pvrect(invert_hclust, alpha = 0.90)
+
+# Export plots
+ggsave(filename = "../figures/invertebrate_pam_analysis_wss.png",
+       plot = invert_cluster_wss, device = "png",
        width = 18, height = 12, dpi = 300)
+
+ggsave(filename = "../figures/invertebrate_pam_analysis_sil.png",
+       plot = invert_cluster_sil, device = "png",
+       width = 18, height = 12, dpi = 300)
+
+ggsave(filename = "../figures/invertebrate_hclust_analysis.png",
+       plot = plot(invert_hclust), device = "png",
+       width = 18, height = 12, dpi = 300)
+
 
 # Run invert NMDS
 invertebrates_metaMDS <- metaMDS(comm = inver_comm, distance = "bray", try = 100)
@@ -436,20 +487,26 @@ inverts_well_preserved_nmds <- ggplot() +
   geom_point(data = data_scores,
              aes(x = NMDS1, y = NMDS2, size = log10(distance_weighted_population),
                  color = IDW_pop_group)) +
-  scale_size_continuous(range = c(8, 20), guide = FALSE) +
+  scale_size_continuous(range = c(12, 28), guide = FALSE) +
   scale_color_manual(values = inferno(15)[c(3, 8, 11, 14)],
                      name = "IDW Population Grouping") +
   guides(colour = guide_legend(override.aes = list(size = 10))) +
   geom_text_repel(data = species_scores %>% 
                     filter(species %in% c("Eulimnogammarus", "Poekilogammarus", "Valvatidae",
-                                          "Caddisflies", "Brandtia", "Baicaliidae",
-                                          "Planorbidae")) %>%
+                                          "Caddisflies", "Brandtia", "Planorbidae", "Baicaliidae",
+                                          "Cryptoropus", "Flatworms")) %>%
                     mutate(NMDS1 = ifelse(test = species == "Poekilogammarus", 
-                                          yes = NMDS1+0.04, no = NMDS1),
+                                                 yes = NMDS1+0.04, no = NMDS1),
+                           NMDS2 = ifelse(test = species == "Poekilogammarus", 
+                                          yes = NMDS2+0.02, no = NMDS2),
                            NMDS1 = ifelse(test = species == "Eulimnogammarus", 
-                                          yes = NMDS1-0.04, no = NMDS1)),
+                                                 yes = NMDS1-0.08, no = NMDS1),
+                           NMDS1 = ifelse(test = species == "Eulimnogammarus", 
+                                          yes = NMDS1-0.04, no = NMDS1),
+                           NMDS2 = ifelse(test = species == "Flatworms", 
+                                          yes = NMDS2-0.07, no = NMDS2),),
                   aes(x = NMDS1, y = NMDS2, label = species), 
-                  size = 10, color = "grey40") + 
+                  size = 10) + 
   coord_equal() +
   annotate("label", x = -0.15, y = 0.4, size = 10,
            label = paste("Stress: ",
@@ -485,6 +542,11 @@ inverts_well_preserved_meta_dist_wide <- full_join(x = invertebrates_well_preser
 
 # Run PERMANOVA
 adonis2(formula = sqrt(inverts_well_preserved_meta_dist_wide[, 3:14]) ~
+          inverts_well_preserved_meta_dist_wide[, 28],
+        data = inverts_well_preserved_meta_dist_wide,
+        method = "bray")
+
+adonis2(formula = sqrt(inverts_well_preserved_meta_dist_wide[, 3:14]) ~
          inverts_well_preserved_meta_dist_wide[, 29],
        data = inverts_well_preserved_meta_dist_wide,
        method = "bray")
@@ -496,14 +558,33 @@ simper_results <- simper(comm = sqrt(inverts_well_preserved_meta_dist_wide[, 3:1
 
 summary(simper_results)
 
-# Combine k-means WSS plots into one.
+# Combine pam wss and silhouette plots into one.
 # This plot is associated with Figure S1 in the associated manuscript.
 
-ggarrange(peri_cluster, invert_cluster, ncol = 2, nrow = 1, labels = "AUTO") %>%
-  ggexport(filename = "../figures/keams_combined_plot.png",
-           hieght = 600, width = 1200, res = 120)
+ggarrange(peri_cluster_wss, invert_cluster_wss,
+          ncol = 2, nrow = 1, labels = "AUTO") %>%
+  ggexport(filename = "../figures/keams_wss_combined_plot.png",
+           hieght = 1800, width = 1200, res = 120)
+
+ggarrange(peri_cluster_sil, invert_cluster_sil, 
+          ncol = 2, nrow = 1, labels = "AUTO") %>%
+  ggexport(filename = "../figures/keams_sil_combined_plot.png",
+           hieght = 1800, width = 1200, res = 120)
+
+# pvclust plots are not easily converted to a grob object, 
+# so this is method for outputting the combined plot is a workaround 
+png(filename="../figures/hclust_combined_plot.png", 
+    width = 10, height = 8, units = "in", res = 120)
+par(mfrow = c(1,2))
+plot(peri_hclust, main = "Periphyton Cluster Dendrogram")
+pvrect(peri_hclust, alpha = 0.9)
+add_label(0.02, 0.07, "A")
+plot(invert_hclust, main = "Macroinvertebrate Cluster Dendrogram")
+pvrect(invert_hclust, alpha = 0.9, )
+add_label(0.02, 0.07, "B")
+dev.off()
 
 ggarrange(periphyton_IDW_pop_group_plot, inverts_well_preserved_nmds,
-          ncol = 2, nrow = 1, labels = "AUTO") %>%
-  ggexport(filename = "../figures/nmds_combined_plot.png",
-           hieght = 2000, width = 3000, res = 120)
+          ncol = 1, nrow = 2, labels = "AUTO", 
+          font.label = list(size = 36, face = "bold")) %>%
+  ggexport(filename = "../figures/nmds_combined_plot.png", height = 3000, width = 3000, res = 120)

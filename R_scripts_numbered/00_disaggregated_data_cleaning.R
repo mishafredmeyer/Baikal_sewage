@@ -65,7 +65,7 @@ write.csv(x = ppcp, file = "../clean_disaggregated_data/ppcp.csv",
 nutrients_orig <- read.csv(file = "../original_data/baikal_nearshore_nutrient_data_20151009.csv",
                            header = TRUE)
 
-# Take nutrients averages by site
+# Take nutrients, clean column names, and standardize relational column
 nutrients <- nutrients_orig %>%
   clean_names(case = "snake") %>%
   rename(site = sample)
@@ -102,7 +102,7 @@ chlorophylla <- chla_orig %>%
            Station == "OS-2" |
            Station == "OS-3") %>%
   clean_names(case = "snake") %>%
-  # Correct for incorrect date formatting
+  # Correct unintended formatting as dates
   mutate(replicate = as.character(replicate),
          replicate = ifelse(test = grepl(pattern = "Jan", x = replicate), 
                             yes = 1, no = replicate),
@@ -225,14 +225,14 @@ write.csv(x = inverts_wide, file = "../clean_disaggregated_data/invertebrates.cs
 periphyton_orig <- read.csv(file = "../original_data/periphyton_20180917.csv",
                             header = TRUE)
 
-# Make long format, take mean counts by taxon
+# Make long format with relational columns
 periphyton_wide <- periphyton_orig %>%
   rename("replicate" = "rep",
          "subsamples_counted" = "counts",
          "tetrasporales" = "tetraporales") %>%
   separate(col = site, into = c("Location", "Number"), sep = -1) %>%
   unite(col = "site", Location, Number, sep = "-") %>%
-  select(-date) %>%
+  select(-date, -Lyngbya) %>%
   clean_names()
 
 head(periphyton_wide)
@@ -392,8 +392,6 @@ write.csv(x = microplastics, file = "../clean_disaggregated_data/microplastics.c
 
 # 11. Load and clean calculated distance metrics --------------------------
 
-# Step 1. Load data -------------------------------------------------------
-
 # Load the shapefiles and metadata containing information of the development
 # polygons and the lake shorelines.
 
@@ -404,8 +402,7 @@ metadata <- read.csv(file = "../clean_disaggregated_data/metadata.csv",
                      header = TRUE, stringsAsFactors = FALSE)
 
 
-# Step 2: Extract and format development area data ------------------------
-
+# Extract and format development area data 
 loc_areas <- baikal_shapefile %>%
   filter(!grepl("shoreline", Name)) %>%
   st_area() %>%
@@ -425,15 +422,13 @@ loc_areas <- baikal_shapefile %>%
   filter(site %in% c("BK", "LI", "BGO"))
 
 
-# Step 3: Extract Development names ---------------------------------------
-
+# Extract Development names 
 shoreline_names <- baikal_shapefile %>%
   filter(grepl(pattern = "shoreline", x = Name)) %>%
   as_tibble()
 
 
-# Step 4: Extract shoreline length info and join with area ----------------
-
+# Extract shoreline length info and join with area
 loc_shoreline_area_length <- baikal_shapefile %>%
   filter(grepl("shoreline", Name)) %>%
   st_length() %>%
@@ -451,13 +446,11 @@ loc_shoreline_area_length <- baikal_shapefile %>%
   full_join(x = ., y = loc_areas, by = c("site"))
 
 
-# Step 5: Calculate centroids for each developed site ---------------------
-
+# Calculate centroids for each developed site 
 baikal_shapefile$centroids <- st_centroid(x = baikal_shapefile)
 
 
-# Step 6: Convert metadata into a spatial object --------------------------
-
+# Convert metadata into a spatial object 
 site_loc <- metadata %>%
   dplyr::select(site, lat, long)
 
@@ -465,8 +458,7 @@ site_loc_pts <- st_as_sf(site_loc[, 2:3], coords = c("long", "lat"),
                          crs = 4326)
 
 
-# Step 7: Join all data together and format into a dataframe --------------
-
+# Join all data together and format into a dataframe
 locs_centroids <- st_distance(x = site_loc_pts,
                               y = baikal_shapefile$centroids$geometry[1:3]) %>%
   as_tibble() %>%

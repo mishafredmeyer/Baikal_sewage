@@ -63,7 +63,8 @@ mean_var <- dplyr::mutate(mean_var, Var_Mean_Ratio = Variance / Mean)
 row.names(mean_var) <- colnames(fatty_acid_whole_wide[, 5:63])
 mean_var[order(mean_var$Var_Mean_Ratio, decreasing = TRUE), ]
 
-write.csv(x = mean_var[order(mean_var$Var_Mean_Ratio, decreasing = TRUE), ], file = "../tables/cv_all_fa.csv", row.names = FALSE)
+write.csv(x = mean_var[order(mean_var$Var_Mean_Ratio, decreasing = TRUE), ], 
+          file = "../tables/cv_all_fa.csv", row.names = TRUE)
 
 # Perform NMDS
 whole_fatty_acid_metaMDS <- metaMDS(comm = fatty_acid_whole_wide[, 5:63],
@@ -134,7 +135,8 @@ mean_var <- dplyr::mutate(mean_var, Var_Mean_Ratio = Variance / Mean)
 row.names(mean_var) <- colnames(fatty_acid_essential_wide[, 5:12])
 mean_var[order(mean_var$Var_Mean_Ratio, decreasing = TRUE), ]
 
-write.csv(x = mean_var[order(mean_var$Var_Mean_Ratio, decreasing = TRUE), ], file = "../tables/cv_efa.csv", row.names = FALSE)
+write.csv(x = mean_var[order(mean_var$Var_Mean_Ratio, decreasing = TRUE), ], 
+          file = "../tables/cv_efa.csv", row.names = TRUE)
 
 
 # Perform NMDS
@@ -142,7 +144,7 @@ essential_fatty_acid_metaMDS <- metaMDS(comm = fatty_acid_essential_wide[, 5:12]
                                         distance = "bray", k = 2, try = 100)
 essential_fatty_acid_metaMDS
 
-# Aggregate data scores for plotting and analysis of the NMDS
+# Extract data scores for plotting and analysis of the NMDS
 data_scores <- as.data.frame(scores(essential_fatty_acid_metaMDS)) %>%
   mutate(site = fatty_acid_essential_wide$site,
          taxon = fatty_acid_essential_wide$taxon,
@@ -185,6 +187,7 @@ ggsave(filename = "all_species_essential_FA_symbol.png", plot = nmds, device = "
 
 # 3. Correlating fatty acids with sewage ----------------------------------
 
+# Create proportions of each fatty acid in the dataset
 fatty_acid_prop_ppcp_meta_dist <- fatty_acid_ppcp_meta_dist %>%
   gather(key = fatty_acid, value = concentration, c12_0:c24_0) %>%
   group_by(site, Genus, Species) %>%
@@ -201,7 +204,7 @@ peri_ppcp_lm <- lm((c18_3w3 + c18_1w9 + c18_2w6 + c16_0)/(c16_1w7 + c20_5w3 + c1
 
 summary(peri_ppcp_lm)
 
-# Second compare essential fatty acid ratios in invertebrates with total PPCP conentration
+# Second compare essential fatty acid ratios in E. verrucosus with total PPCP conentration
 eulimnogammarus_verrucosus_ppcp_lm <- 
   lm((c18_3w3 + c18_1w9 + c18_2w6 + c16_0)/(c16_1w7 + c20_5w3 + c14_0 + c16_0) ~ log10(ppcp_sum),
      data = filter(fatty_acid_prop_ppcp_meta_dist, 
@@ -209,6 +212,7 @@ eulimnogammarus_verrucosus_ppcp_lm <-
 
 summary(eulimnogammarus_verrucosus_ppcp_lm)
 
+# Third compare essential fatty acid ratios in E. vittatus  with total PPCP conentration
 eulimnogammarus_vitatus_ppcp_lm <- 
   lm((c18_3w3 + c18_1w9 + c18_2w6 + c16_0)/(c16_1w7 + c20_5w3 + c14_0 + c16_0) ~ log10(ppcp_sum),
      data = filter(fatty_acid_prop_ppcp_meta_dist, 
@@ -216,10 +220,12 @@ eulimnogammarus_vitatus_ppcp_lm <-
 
 summary(eulimnogammarus_vitatus_ppcp_lm)
 
+# Extract model R-squared values from each linear model
 r_squared <- c(summary(peri_ppcp_lm)$r.squared,
                summary(eulimnogammarus_verrucosus_ppcp_lm)$r.squared,
                summary(eulimnogammarus_vitatus_ppcp_lm)$r.squared)
 
+# Extract model p-values from each linear model
 p_values <- c(summary(peri_ppcp_lm)$coefficients[2,4],
               summary(eulimnogammarus_verrucosus_ppcp_lm)$coefficients[2,4],
               summary(eulimnogammarus_vitatus_ppcp_lm)$coefficients[2,4])
@@ -273,23 +279,26 @@ peri_ppcp_lm <- lm(((c18_3w3 + c18_2w6) / (c20_5w3)) ~ log10(ppcp_sum),
 
 summary(peri_ppcp_lm)
 
-# Second compare essential fatty acid ratios in invertebrates with total PPCP conentration
+# Second compare essential fatty acid ratios in E. verrucosus with total PPCP conentration
 eulimnogammarus_verrucosus_ppcp_lm <- lm(((c18_3w3 + c18_2w6) / (c20_5w3)) ~ log10(ppcp_sum),
                                          data = filter(fatty_acid_prop_ppcp_meta_dist, 
                                                        taxon == "Eulimnogammarus_verrucosus"))
 
 summary(eulimnogammarus_verrucosus_ppcp_lm)
 
+# Third compare essential fatty acid ratios in E. vittatus  with total PPCP conentration
 eulimnogammarus_vitatus_ppcp_lm <- lm(((c18_3w3 + c18_2w6) / (c20_5w3)) ~ log10(ppcp_sum),
                                          data = filter(fatty_acid_prop_ppcp_meta_dist, 
                                                        taxon == "Eulimnogammarus_vittatus"))
 
 summary(eulimnogammarus_vitatus_ppcp_lm)
 
+# Extract model R-squared values from each linear model
 r_squared <- c(summary(peri_ppcp_lm)$r.squared,
                summary(eulimnogammarus_verrucosus_ppcp_lm)$r.squared,
                summary(eulimnogammarus_vitatus_ppcp_lm)$r.squared)
 
+# Extract model p-values from each linear model
 p_values <- c(summary(peri_ppcp_lm)$coefficients[2,4],
               summary(eulimnogammarus_verrucosus_ppcp_lm)$coefficients[2,4],
               summary(eulimnogammarus_vitatus_ppcp_lm)$coefficients[2,4])
@@ -510,6 +519,7 @@ nmds <- ggplot() +
   geom_point(data = data_scores, aes(x = NMDS1, y = NMDS2, shape = taxon,
                                      size = ppcp_sum),
              alpha = .5) +
+  scale_shape_manual(name = "taxon", values = c(15:18)) +
   #geom_point(data = species_scores, aes(x = NMDS1, y = NMDS2)) +
   geom_text_repel(data = species_scores %>%
                     mutate(NMDS1 = ifelse(test = rownames(species_scores) == "c18_2w6",
@@ -527,7 +537,7 @@ nmds <- ggplot() +
         title = element_text(size = 20),
         axis.text = element_text(size = 20),
         axis.title = element_text(size = 20),
-        legend.text = element_text(size = 20))
+        legend.text = element_text(size = 14))
 
 ggsave(filename = "filamentous_diatom_nmds_amphipods.png", plot = nmds, device = "png", 
        path = "../figures/", width = 16, height = 10, units = "in")

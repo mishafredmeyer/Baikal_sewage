@@ -1,4 +1,9 @@
-# This script is associated with 
+# This script is meant to perform univariate analysis of various sewage 
+# indicators along Lake Baikal's southwestern shoreline. Each of the sewage
+# indicators are regressed against log-transformed inverse distance weighted 
+# population using a linear model. For each indicator, an individual plot is
+# produced, and then all individual plots are merged into a single, 
+# final figure.
 
 # 1. Load packages --------------------------------------------------------
 
@@ -78,7 +83,7 @@ ggsave(filename = "../figures/ppcp_PI_plot.png", plot = ppcp_PI_plot,
 
 # 4. Nutrient analysis ----------------------------------------------------
 
-# Join PPCP data with metadata/distance and create custom metric
+# Join nutrient data with metadata/distance and create custom metric
 nutrients_meta_dist <- full_join(x = nutrients, y = metadata_dist, by = "site")
 
 
