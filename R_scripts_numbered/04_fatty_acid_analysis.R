@@ -92,9 +92,15 @@ nmds <- ggplot() +
   scale_shape_manual(values = c(1:7)) + 
   geom_text_repel(data = species_scores %>%
                     filter(species %in% c("c18_3w3", "c18_1w9", "c18_2w6", "c16_0", 
-                           "c14_0", "c20_5w3", "c161w7")), 
+                           "c14_0", "c20_5w3", "c16_1w7")) %>%
+                    mutate(species = gsub(pattern = "c", replacement = "", 
+                                          x = species),
+                           species = gsub(pattern = "_", replacement = ":", 
+                                          x = species),
+                           species = gsub(pattern = "w", replacement = "??", 
+                                          x = species)), 
                   aes(x = NMDS1, y = NMDS2, label = species),
-                  size = 5) +
+                  size = 10) +
   ggtitle("NMDS with Entire FA Spectrum") +
   annotate("label", x = 0.4, y = 0.45,
            label = paste("Stress: ", round(whole_fatty_acid_metaMDS$stress, digits = 3)),
@@ -164,9 +170,15 @@ nmds <- ggplot() +
   #scale_fill_manual(values = inferno(69)[c(1, 13, 18, 20, 27, 33, 38, 45, 55)]) +
   scale_shape_manual(values = c(1:7)) + 
   geom_text_repel(data = species_scores %>%
-                    filter(species %in% c("c18_3w3", "c18_2w6", "c20_5w3")), 
+                    filter(species %in% c("c18_3w3", "c18_2w6", "c20_5w3")) %>%
+                    mutate(species = gsub(pattern = "c", replacement = "", 
+                                          x = species),
+                           species = gsub(pattern = "_", replacement = ":", 
+                                          x = species),
+                           species = gsub(pattern = "w", replacement = "??", 
+                                          x = species)), 
                   aes(x = NMDS1, y = NMDS2, label = species),
-                  size = 5) +
+                  size = 10) +
   ggtitle("NMDS with Essential FA Spectrum") +
   annotate("label", x = -0.5, y = 0.35,
            label = paste("Stress: ",
@@ -254,8 +266,8 @@ ppcp_filamentous_diatom_fa_plot <- fatty_acid_prop_ppcp_meta_dist %>%
     geom_point(size = 3) +
     facet_wrap(~ taxon) +
     geom_smooth(method = "lm") +
-    geom_label(data = labels %>% filter(taxon != "Periphyton"), aes(label = label, x = -2.0, y = 1.75), size = 4) +
-    geom_label(data = labels %>% filter(taxon == "Periphyton"), aes(label = label, x = -2.0, y = 1.15), size = 4) +
+    geom_label(data = labels %>% filter(taxon != "Periphyton"), aes(label = label, x = -2.0, y = 1.75), size = 8) +
+    geom_label(data = labels %>% filter(taxon == "Periphyton"), aes(label = label, x = -2.0, y = 1.15), size = 8) +
     xlab(label = "log10([Total PPCP])") +
     ylab(label = expression(frac(18:3~omega~3 + 18:1~omega~9 + 18:2~omega~6 + 16:0, 
                                  16:1~omega~7 + 20:5~omega~3 + 16:0 + 14:0))) +
@@ -325,8 +337,8 @@ ppcp_efa_plot <- fatty_acid_prop_ppcp_meta_dist %>%
   geom_point(size = 3) +
   facet_wrap(~ taxon) +
   geom_smooth(method = "lm") +
-  geom_label(data = labels %>% filter(taxon != "Periphyton"), aes(label = label, x = -2.0, y = 5), size = 4) +
-  geom_label(data = labels %>% filter(taxon == "Periphyton"), aes(label = label, x = -2.0, y = 2.5), size = 4) +
+  geom_label(data = labels %>% filter(taxon != "Periphyton"), aes(label = label, x = -2.0, y = 5), size = 8) +
+  geom_label(data = labels %>% filter(taxon == "Periphyton"), aes(label = label, x = -2.0, y = 2.5), size = 8) +
   xlab(label = "log10([Total PPCP])") +
   ylab(label = expression(frac(18:3~omega~3 + 18:2~omega~6, 20:5~omega~3 ))) +
   theme_bw() +
@@ -427,6 +439,7 @@ fatty_acid_type_props_plot <- fatty_acid_prop_ppcp_meta_dist %>%
   scale_color_viridis_d(option = "viridis") +
   facet_grid(~fatty_acid_type) +
   ylab("Total proportion") +
+  xlab("log10([Total PPCP])") +
   theme_bw() +
   theme(legend.position = "bottom",
         title = element_text(size = 20),
@@ -461,6 +474,7 @@ data_scores <- as.data.frame(scores(peri_nmds)) %>%
          ppcp_sum = periphyton_fatty_acids$ppcp_sum)
 
 species_scores <- as.data.frame(scores(peri_nmds, display = "species"))
+species_scores$species <- rownames(species_scores)
 
 # Create plot
 # This figure is associated with figure S1 in the associated manuscript
@@ -469,8 +483,14 @@ nmds <- ggplot() +
                                      size = ppcp_sum),
              alpha = .5) +
   #geom_point(data = species_scores, aes(x = NMDS1, y = 1), size = 4) +
-  geom_text_repel(data = species_scores, aes(x = NMDS1, y = 1,
-                                             label = rownames(species_scores)),
+  geom_text_repel(data = species_scores %>%
+                    mutate(species = gsub(pattern = "c", replacement = "", 
+                                          x = species),
+                           species = gsub(pattern = "_", replacement = ":", 
+                                          x = species),
+                           species = gsub(pattern = "w", replacement = "??", 
+                                          x = species)), 
+                  aes(x = NMDS1, y = 1, label = species),
                   size = 10, segment.size = NA) +
   scale_size_continuous(name = "[Total PPCP]", range = c(5,20)) +
   guides(shape = guide_legend(override.aes = list(size=10))) + 
@@ -512,6 +532,7 @@ data_scores <- as.data.frame(scores(invert_nmds)) %>%
          ppcp_sum = invert_fatty_acids$ppcp_sum)
 
 species_scores <- as.data.frame(scores(invert_nmds, display = "species"))
+species_scores$species <- rownames(species_scores)
 
 # Create plot
 # This figure is associated with figure S1 in the associated manuscript
@@ -522,9 +543,13 @@ nmds <- ggplot() +
   scale_shape_manual(name = "taxon", values = c(15:18)) +
   #geom_point(data = species_scores, aes(x = NMDS1, y = NMDS2)) +
   geom_text_repel(data = species_scores %>%
-                    mutate(NMDS1 = ifelse(test = rownames(species_scores) == "c18_2w6",
-                                          yes = NMDS1-0.04, no = NMDS1)), 
-                  aes(x = NMDS1, y = NMDS2, label = rownames(species_scores)),
+                    mutate(species = gsub(pattern = "c", replacement = "", 
+                                          x = species),
+                           species = gsub(pattern = "_", replacement = ":", 
+                                          x = species),
+                           species = gsub(pattern = "w", replacement = "??", 
+                                          x = species)), 
+                  aes(x = NMDS1, y = NMDS2, label = species),
                   size = 10, segment.size = NA) +
   scale_size_continuous(name = "[Total PPCP]", range = c(5,20)) +
   guides(shape = guide_legend(override.aes = list(size=10))) + 
