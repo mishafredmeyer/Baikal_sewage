@@ -86,18 +86,21 @@ species_scores$species <- rownames(species_scores)
 # Create plot
 # This figure is associated with figure S1 in the associated manuscript
 nmds <- ggplot() +
-  geom_point(data = data_scores, aes(x = NMDS1, y = NMDS2, shape = taxon),
-             size = 10, alpha = .75) +
-  #scale_color_manual(values = viridis(69)[c(1, 13, 25, 33, 38, 50, 60, 69)]) +
-  scale_shape_manual(values = c(1:7)) + 
+  geom_point(data = data_scores, aes(x = NMDS1, y = NMDS2, fill = taxon),
+             size = 10, alpha = .6, shape = 21, stroke = 2, color = "grey60") +
+  scale_fill_viridis_d(option = "plasma") +
   geom_text_repel(data = species_scores %>%
                     filter(species %in% c("c18_3w3", "c18_1w9", "c18_2w6", "c16_0", 
                            "c14_0", "c20_5w3", "c16_1w7")) %>%
-                    mutate(species = gsub(pattern = "c", replacement = "", 
+                    mutate(NMDS2 = ifelse(test = species == "c14_0", yes = NMDS2+0.04, 
+                                          no = NMDS2),
+                           NMDS2 = ifelse(test = species == "c16_1w7", yes = NMDS2-0.02, 
+                                          no = NMDS2),
+                           species = gsub(pattern = "c", replacement = "", 
                                           x = species),
                            species = gsub(pattern = "_", replacement = ":", 
                                           x = species),
-                           species = gsub(pattern = "w", replacement = "??", 
+                           species = gsub(pattern = "w", replacement = "\U03C9", 
                                           x = species)), 
                   aes(x = NMDS1, y = NMDS2, label = species),
                   size = 10) +
@@ -113,8 +116,8 @@ nmds <- ggplot() +
         legend.text = element_text(size = 12))
 nmds
 
-ggsave(filename = "all_species_all_FA_symbols.png", plot = nmds, device = "png",
-       path = "../figures/", width = 12, height = 10, units = "in", dpi = 300)
+ggsave(filename = "all_species_all_FA.png", plot = nmds, device = "png",
+       path = "../figures/", width = 14, height = 10, units = "in", dpi = 300)
 
 
 # 2.2 Redo analysis with only essential fatty acids -----------------------
@@ -165,17 +168,16 @@ species_scores$species <- rownames(species_scores)
 # Plot NMDS for all species but only Essential Fatty Acids
 # This plot is figure S2 in the associated ms.
 nmds <- ggplot() +
-  geom_point(data = data_scores, aes(x = NMDS1, y = NMDS2, shape = taxon),
-             size = 10, alpha = .75) +
-  #scale_fill_manual(values = inferno(69)[c(1, 13, 18, 20, 27, 33, 38, 45, 55)]) +
-  scale_shape_manual(values = c(1:7)) + 
+  geom_point(data = data_scores, aes(x = NMDS1, y = NMDS2, fill = taxon),
+             size = 10, alpha = .75, shape = 21, stroke = 2, color = "grey70") +
+  scale_fill_viridis_d(option = "plasma") +
   geom_text_repel(data = species_scores %>%
                     filter(species %in% c("c18_3w3", "c18_2w6", "c20_5w3")) %>%
                     mutate(species = gsub(pattern = "c", replacement = "", 
                                           x = species),
                            species = gsub(pattern = "_", replacement = ":", 
                                           x = species),
-                           species = gsub(pattern = "w", replacement = "??", 
+                           species = gsub(pattern = "w", replacement = "\U03C9", 
                                           x = species)), 
                   aes(x = NMDS1, y = NMDS2, label = species),
                   size = 10) +
@@ -266,8 +268,8 @@ ppcp_filamentous_diatom_fa_plot <- fatty_acid_prop_ppcp_meta_dist %>%
     geom_point(size = 3) +
     facet_wrap(~ taxon) +
     geom_smooth(method = "lm") +
-    geom_label(data = labels %>% filter(taxon != "Periphyton"), aes(label = label, x = -2.0, y = 1.75), size = 8) +
-    geom_label(data = labels %>% filter(taxon == "Periphyton"), aes(label = label, x = -2.0, y = 1.15), size = 8) +
+    geom_label(data = labels %>% filter(taxon != "Periphyton"), aes(label = label, x = -2.0, y = 1.9), size = 8) +
+    geom_label(data = labels %>% filter(taxon == "Periphyton"), aes(label = label, x = -2.0, y = 0.85), size = 8) +
     xlab(label = "log10([Total PPCP])") +
     ylab(label = expression(frac(18:3~omega~3 + 18:1~omega~9 + 18:2~omega~6 + 16:0, 
                                  16:1~omega~7 + 20:5~omega~3 + 16:0 + 14:0))) +
@@ -479,20 +481,20 @@ species_scores$species <- rownames(species_scores)
 # Create plot
 # This figure is associated with figure S1 in the associated manuscript
 nmds <- ggplot() +
-  geom_point(data = data_scores, aes(x = NMDS1, y = 0.5, shape = taxon,
-                                     size = ppcp_sum),
-             alpha = .5) +
-  #geom_point(data = species_scores, aes(x = NMDS1, y = 1), size = 4) +
+  geom_point(data = data_scores, aes(x = NMDS1, y = 0.5,
+                                     size = ppcp_sum, fill = taxon),
+             alpha = .5, shape = 21, stroke = 5, color = "grey70") +
+  scale_fill_manual(values = viridis(20)[c(4, 10)]) +
   geom_text_repel(data = species_scores %>%
                     mutate(species = gsub(pattern = "c", replacement = "", 
                                           x = species),
                            species = gsub(pattern = "_", replacement = ":", 
                                           x = species),
-                           species = gsub(pattern = "w", replacement = "??", 
+                           species = gsub(pattern = "w", replacement = "\U03C9", 
                                           x = species)), 
                   aes(x = NMDS1, y = 1, label = species),
                   size = 10, segment.size = NA) +
-  scale_size_continuous(name = "[Total PPCP]", range = c(5,20)) +
+  scale_size_continuous(name = "[Total PPCP]", range = c(10, 30)) +
   guides(shape = guide_legend(override.aes = list(size=10))) + 
   ggtitle("NMDS with Filamentous:Diatom Fatty Acids") +
   ylab("") + 
@@ -501,6 +503,7 @@ nmds <- ggplot() +
            label = paste("Stress: ", round(peri_nmds$stress, digits = 3)),
            size = 10) +
   theme_minimal() +
+  guides(fill = guide_legend(override.aes = list(size = 15))) +
   theme(legend.position = "right",
         title = element_text(size = 20),
         axis.text = element_text(size = 20),
@@ -508,7 +511,8 @@ nmds <- ggplot() +
         legend.text = element_text(size = 20),
         axis.text.y = element_blank(),
         panel.grid.major.y = element_blank(),
-        panel.grid.minor.y = element_blank())
+        panel.grid.minor.y = element_blank(),
+        legend.key.height = unit(0.75, "in"))
 
 ggsave(filename = "filamentous_diatom_nmds_peri_drapa.png", plot = nmds, device = "png", 
        path = "../figures/", width = 16, height = 8, units = "in")
@@ -537,32 +541,33 @@ species_scores$species <- rownames(species_scores)
 # Create plot
 # This figure is associated with figure S1 in the associated manuscript
 nmds <- ggplot() +
-  geom_point(data = data_scores, aes(x = NMDS1, y = NMDS2, shape = taxon,
+  geom_point(data = data_scores, aes(x = NMDS1, y = NMDS2, fill = taxon,
                                      size = ppcp_sum),
-             alpha = .5) +
-  scale_shape_manual(name = "taxon", values = c(15:18)) +
-  #geom_point(data = species_scores, aes(x = NMDS1, y = NMDS2)) +
+             alpha = .5, shape = 21, stroke = 5, color = "grey70") +
+  scale_fill_manual(name = "taxon", values = viridis(30)[c(4, 9, 17, 24)]) +
   geom_text_repel(data = species_scores %>%
                     mutate(species = gsub(pattern = "c", replacement = "", 
                                           x = species),
                            species = gsub(pattern = "_", replacement = ":", 
                                           x = species),
-                           species = gsub(pattern = "w", replacement = "??", 
+                           species = gsub(pattern = "w", replacement = "\U03C9", 
                                           x = species)), 
                   aes(x = NMDS1, y = NMDS2, label = species),
                   size = 10, segment.size = NA) +
-  scale_size_continuous(name = "[Total PPCP]", range = c(5,20)) +
+  scale_size_continuous(name = "[Total PPCP]", range = c(10,30)) +
   guides(shape = guide_legend(override.aes = list(size=10))) + 
   ggtitle("NMDS with Filamentous:Diatom Fatty Acids") +
   annotate("label", x = 0.2, y = 0.2,
            label = paste("Stress: ", round(invert_nmds$stress, digits = 3)),
            size = 10) +
   theme_minimal() +
+  guides(fill = guide_legend(override.aes = list(size = 10))) +
   theme(legend.position = "right",
         title = element_text(size = 20),
         axis.text = element_text(size = 20),
         axis.title = element_text(size = 20),
-        legend.text = element_text(size = 14))
+        legend.text = element_text(size = 18),
+        legend.key.height = unit(0.5, "in"))
 
 ggsave(filename = "filamentous_diatom_nmds_amphipods.png", plot = nmds, device = "png", 
        path = "../figures/", width = 16, height = 10, units = "in")

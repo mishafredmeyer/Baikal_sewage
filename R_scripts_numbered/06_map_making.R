@@ -35,7 +35,7 @@ sample_points_merc <- projectMercator(lat = sample_points$lat,
 # Options: https://www.r-bloggers.com/the-openstreetmap-package-opens-up/
 base_map <- openmap(upperLeft = c(55.915113, 102.2324553),
                       lowerRight = c(51.1800703, 110.8),
-                      type = "nps") %>%
+                      type = "bing") %>%
   openproj()
 
 # Get a zoomed in map
@@ -55,6 +55,10 @@ inset_map <- autoplot.OpenStreetMap(base_map) +
   theme(axis.text.x = element_text(size = 10),
         axis.text.y = element_text(size = 10),
         plot.background = element_rect(fill = "snow1")) +
+  annotate(geom = "text", label = "Irkutsk Oblast",
+           x = 105, y = 54, color = "white", size = 5) +
+  annotate(geom = "text", label = "Republic of\nBuryatiya",
+           x = 109, y = 52.35, color = "white", size = 5) +
   xlab("") +
   ylab("") +
   theme(legend.position = "none",
