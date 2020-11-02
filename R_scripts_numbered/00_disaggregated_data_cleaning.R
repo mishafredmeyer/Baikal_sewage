@@ -296,6 +296,8 @@ fatty_acid <- fatty_acid_orig %>%
                         yes = "Pallasea", no = Genus),
          Genus = ifelse(test = Genus == "Spl",
                         yes = "Periphyton", no = Genus),
+         Genus = ifelse(test = Genus == "Drapa",
+                        yes = "Draparnaldia", no = Genus),
          Species = ifelse(test = Genus == "Eulimnogammarus" & Species == "ver",
                           yes = "verrucosus", no = Species),
          Species = ifelse(test = Genus == "Eulimnogammarus" & Species == "vitatus",

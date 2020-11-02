@@ -35,7 +35,7 @@ sample_points_merc <- projectMercator(lat = sample_points$lat,
 # Options: https://www.r-bloggers.com/the-openstreetmap-package-opens-up/
 base_map <- openmap(upperLeft = c(55.915113, 102.2324553),
                       lowerRight = c(51.1800703, 110.8),
-                      type = "bing") %>%
+                      type = "esri") %>%
   openproj()
 
 # Get a zoomed in map

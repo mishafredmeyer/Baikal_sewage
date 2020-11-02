@@ -77,7 +77,7 @@ data_scores <- as.data.frame(scores(whole_fatty_acid_metaMDS)) %>%
          taxon = fatty_acid_whole_wide$taxon,
          taxon = gsub(pattern = "_", replacement = " ", x = taxon),
          taxon = gsub(pattern = "NA", replacement = "", x = taxon),
-         taxon = gsub(pattern = "Drapa", replacement = "Drapa spp.", x = taxon))
+         taxon = gsub(pattern = "Draparnaldia", replacement = "Draparnaldia spp.", x = taxon))
 
 # Pull species scores from NMDS
 species_scores <- as.data.frame(scores(x = whole_fatty_acid_metaMDS, display = "species"))
@@ -159,7 +159,7 @@ data_scores <- as.data.frame(scores(essential_fatty_acid_metaMDS)) %>%
          taxon = fatty_acid_essential_wide$taxon,
          taxon = gsub(pattern = "_", replacement = " ", x = taxon),
          taxon = gsub(pattern = "NA", replacement = "", x = taxon),
-         taxon = gsub(pattern = "Drapa", replacement = "Drapa spp.", x = taxon))
+         taxon = gsub(pattern = "Draparnaldia", replacement = "Draparnaldia spp.", x = taxon))
 
 # Pull species scores from NMDS
 species_scores <- as.data.frame(scores(x = essential_fatty_acid_metaMDS, display = "species"))
@@ -194,7 +194,7 @@ nmds <- ggplot() +
         legend.text = element_text(size = 12))
 nmds
 
-ggsave(filename = "all_species_essential_FA_symbol.png", plot = nmds, device = "png",
+ggsave(filename = "all_species_essential_FA.png", plot = nmds, device = "png",
        path = "../figures/", width = 12, height = 10, units = "in",
        dpi = 300)
 
@@ -426,8 +426,8 @@ fatty_acid_type_props_plot <- fatty_acid_prop_ppcp_meta_dist %>%
          fatty_acid_type = ifelse(fatty_acid %in% lcufa, "LCPUFA", fatty_acid_type)) %>%
   mutate(taxon = gsub(pattern = "_", replacement = " ", x = taxon),
          taxon = gsub(pattern = "NA", replacement = "", x = taxon),
-         taxon = ifelse(test = grepl(pattern = "Drapa", x = taxon),
-                        yes = "Drapa spp.", no = taxon)) %>%
+         taxon = ifelse(test = grepl(pattern = "Draparnaldia", x = taxon),
+                        yes = "Draparnaldia spp.", no = taxon)) %>%
   select(site, ppcp_sum, distance_weighted_population, taxon, 
          Genus, Species, fatty_acid_type, fa_prop) %>%
   group_by(site, ppcp_sum, distance_weighted_population, taxon,
@@ -460,7 +460,7 @@ ggsave(filename = "fatty_acid_type_props_plot.png", plot = fatty_acid_type_props
 # 5.1 Primary producer analysis -------------------------------------------
 
 periphyton_fatty_acids <- fatty_acid_prop_ppcp_meta_dist %>%
-  filter(Genus %in% c("Periphyton", "Drapa")) %>%
+  filter(Genus %in% c("Periphyton", "Draparnaldia")) %>%
   select(site:distance_weighted_population, c18_3w3, c16_0, c18_1w9, c18_2w6, 
          c16_1w7, c20_5w3, c14_0)
 
@@ -472,7 +472,7 @@ data_scores <- as.data.frame(scores(peri_nmds)) %>%
          taxon = periphyton_fatty_acids$taxon,
          taxon = gsub(pattern = "_", replacement = " ", x = taxon),
          taxon = gsub(pattern = "NA", replacement = "", x = taxon),
-         taxon = gsub(pattern = "Drapa", replacement = "Drapa spp.", x = taxon),
+         taxon = gsub(pattern = "Draparnaldia", replacement = "Draparnaldia spp.", x = taxon),
          ppcp_sum = periphyton_fatty_acids$ppcp_sum)
 
 species_scores <- as.data.frame(scores(peri_nmds, display = "species"))
