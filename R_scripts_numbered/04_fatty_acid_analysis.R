@@ -355,7 +355,7 @@ ggsave(filename = "ppcp_efa_plot.png", plot = ppcp_efa_plot, device = "png",
 arranged_plots <- ggarrange(ppcp_filamentous_diatom_fa_plot, ppcp_efa_plot, ncol = 1, nrow = 2, 
                             labels = "AUTO", font.label = list(size = 20, face = "bold"))
 
-ggsave(filename = "combined_ppcp_fattyy_acids.png", plot = arranged_plots, device = "png", path = "../figures/", 
+ggsave(filename = "combined_ppcp_fatty_acids.png", plot = arranged_plots, device = "png", path = "../figures/", 
        width = 12, height = 12, units = "in")
 
 
@@ -374,7 +374,7 @@ mufa <- c("c14_1n5", "c15_1w7", "c17_1n7",
 scufa <- c("c16_2w4", "c16_2w6", "c16_2w7", "c16_3w3", "c16_3w4", "c16_3w6", "c16_4w1", "c16_4w3", 
            "c18_2w6", "c18_2w6t", "c18_3w3", "c18_3w6", "c18_4w3", "c18_4w4", "c18_5w3")
 
-lcufa <- c("c20_2_5_11", "c20_2_5_13", "c20_2w6", "c20_3w3", "c20_3w6", "c20_4w3", "c20_4w6", "c20_5w3",
+lcufa <- c("c20_2w5_11", "c20_2w5_13", "c20_2w6", "c20_3w3", "c20_3w6", "c20_4w3", "c20_4w6", "c20_5w3",
            "c22_2w6", "c22_3w3", "c22_4w3", "c22_4w6", "c22_5w3", "c22_5w6", "c22_6w3")
 
 complete_fatty_acid_repo <- data.frame(rbind(c("SAFA", paste(safa, collapse = ", ")),
