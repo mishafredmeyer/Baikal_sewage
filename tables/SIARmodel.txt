@@ -1,0 +1,32 @@
+
+            
+            model {
+            # prior 
+            for(i in 1:num.prey) {
+            alpha[i] <- 1;
+            }
+            p[1:num.prey] ~ ddirch(alpha[]);  # these are weights for means
+            # bookkeeping
+            for(i in 1:num.prey) {
+            p2[i] <- p[i]*p[i]; # these are weights for variances
+            }
+            
+            # for each fa variable and population, calculate the predicted mixtures
+            for(fa in 1:num.fa) {
+            mix.mu[fa] <- inprod(u[,fa],p[]);
+            mix.var[fa] <- inprod(sigma2[,fa],p2[]);
+            residual.tau[fa] ~ dgamma(0.001,0.001); #1/(mix.totalVar[fa]); # EW altered the next 3 lines
+            mix.totalVar[fa] <- mix.var[fa] + 1/residual.tau[fa];
+            mix.prcsn[fa] <- 1/(mix.totalVar[fa]);
+            }
+            
+            # This section does the likelihood / posterior, N data points
+            for(i in 1:N) {
+            for(fa in 1:num.fa) {
+            X[i,fa] ~ dnorm(mix.mu[fa], mix.prcsn[fa]);
+            }
+            }
+            
+            }	
+            
+            
