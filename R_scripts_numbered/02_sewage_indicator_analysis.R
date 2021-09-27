@@ -63,12 +63,12 @@ summary(ppcp_PI_model)
 ppcp_PI_plot <- ggplot(data = ppcp_meta_dist,
                        aes(x = log10(distance_weighted_population),
                            y =  log10(ppcp_sum))) +
-  geom_point() +
+  geom_point(size = 3) +
   geom_smooth(method = "lm", se = TRUE) +
   ylab("log10([Total PPCP])") +
   xlab("log10(IDW Population)") +
   ggtitle("PPCP vs. IDW Population") +
-  annotate(geom = "label", x = 3.5, y = -2.65,
+  annotate(geom = "label", x = 3.5, y = -2.65, size = 10,
            label = paste("p-value: ",
                          round(summary(ppcp_PI_model)$coefficients[2, 4], 3),
                          "\nR-squared: ",
