@@ -1,10 +1,10 @@
 # This script aggregates stable isotopes with sewage
 # indicator data in Lake Baikal to produce a stable isotope
 # biplot for the associated manuscript. 
-
+library(tidyverse)
 library(dplyr)
 library(tidyr)
-library(ggplot2)
+library(ggplot2)ß
 library(viridis)
 
 
